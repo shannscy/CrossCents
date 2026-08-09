@@ -30,7 +30,7 @@
     <div class="stat-row">
       <div class="stat-tile">
         <div class="label">Available balance</div>
-        <div class="value emerald">$2,480.00</div>
+        <div class="value emerald" id="available-balance-display">$2,480.00</div>
       </div>
       <div class="stat-tile">
         <div class="label">Pending</div>
@@ -43,7 +43,7 @@
     </div>
 
     <div class="action-row">
-      <button class="btn btn-primary" onclick="openModal('withdraw-modal')">Withdraw funds</button>
+      <button class="btn btn-primary" onclick="document.getElementById('withdraw-amount-error').style.display='none'; openModal('withdraw-modal')">Withdraw funds</button>
       <button class="btn btn-outline" onclick="openModal('bank-modal')">Link bank account</button>
     </div>
 
@@ -71,6 +71,7 @@
         <div class="field">
           <label>Amount</label>
           <input type="number" id="withdraw-amount" placeholder="0.00" value="500" />
+          <div class="field-error" id="withdraw-amount-error" style="display:none;"></div>
         </div>
         <div class="modal-actions">
           <button class="btn btn-outline" onclick="closeModal('withdraw-modal')">Cancel</button>
@@ -91,7 +92,7 @@
       <div class="modal-sub">Adding a payout method also requires verification.</div>
       <div class="field">
         <label>Account holder name</label>
-        <input type="text" placeholder="Katelin Rivera" />
+        <input type="text" id="bank-account-holder" placeholder="Full name" />
       </div>
       <div class="field">
         <label>IBAN / account number</label>
@@ -108,7 +109,13 @@
   <script src="js/app.js"></script>
   <script>
     const session = Session.requireRole("freelancer", "freelancer-login.html");
-    if (session) document.getElementById("who-name").textContent = session.name;
+    if (session) {
+      document.getElementById("who-name").textContent = session.name;
+      document.getElementById("bank-account-holder").value = session.name;
+    }
+
+    const AVAILABLE_BALANCE = 2480.00;
+    document.getElementById("available-balance-display").textContent = formatCurrency(AVAILABLE_BALANCE);
 
     const txBody = document.getElementById("tx-body");
     SAMPLE_TRANSACTIONS.forEach((tx) => {
@@ -123,6 +130,22 @@
     });
 
     function showWithdrawOtp() {
+      const amountInput = document.getElementById("withdraw-amount");
+      const errorEl = document.getElementById("withdraw-amount-error");
+      const amount = parseFloat(amountInput.value);
+
+      if (!amount || amount <= 0) {
+        errorEl.textContent = "Enter an amount to withdraw.";
+        errorEl.style.display = "block";
+        return;
+      }
+      if (amount > AVAILABLE_BALANCE) {
+        errorEl.textContent = `Not possible — this exceeds your available balance of ${formatCurrency(AVAILABLE_BALANCE)}.`;
+        errorEl.style.display = "block";
+        return;
+      }
+      errorEl.style.display = "none";
+
       document.getElementById("withdraw-step-amount").style.display = "none";
       document.getElementById("withdraw-step-otp").style.display = "block";
       mountDescopeFlow({
