@@ -79,18 +79,8 @@
       </div>
 
       <div id="withdraw-step-otp" style="display:none;">
-        <div class="otp-note">
-          We texted a 6-digit code to your phone ending in •••89.
-          <br /><em>(SMS delivery via Verif8 not yet integrated.)</em>
-        </div>
-        <div class="field">
-          <label>Verification code</label>
-          <input type="text" id="withdraw-otp" placeholder="123456" maxlength="6" />
-        </div>
-        <div class="modal-actions">
-          <button class="btn btn-outline" onclick="closeModal('withdraw-modal')">Cancel</button>
-          <button class="btn btn-primary" onclick="confirmWithdraw()">Verify & withdraw</button>
-        </div>
+        <div class="otp-note">For your security, we'll verify it's really you before releasing funds.</div>
+        <div id="withdraw-flow-mount"></div>
       </div>
     </div>
   </div>
@@ -135,14 +125,17 @@
     function showWithdrawOtp() {
       document.getElementById("withdraw-step-amount").style.display = "none";
       document.getElementById("withdraw-step-otp").style.display = "block";
-    }
-
-    function confirmWithdraw() {
-      const amount = document.getElementById("withdraw-amount").value || "0.00";
-      closeModal("withdraw-modal");
-      document.getElementById("withdraw-step-amount").style.display = "block";
-      document.getElementById("withdraw-step-otp").style.display = "none";
-      showToast(`Withdrawal of $${amount} verified and initiated.`);
+      mountDescopeFlow({
+        flowId: WITHDRAW_STEP_UP_FLOW_ID,
+        mountId: "withdraw-flow-mount",
+        onComplete: () => {
+          const amount = document.getElementById("withdraw-amount").value || "0.00";
+          closeModal("withdraw-modal");
+          document.getElementById("withdraw-step-amount").style.display = "block";
+          document.getElementById("withdraw-step-otp").style.display = "none";
+          showToast(`Withdrawal of $${amount} verified and initiated.`);
+        },
+      });
     }
 
     function linkBank() {

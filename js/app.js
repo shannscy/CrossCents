@@ -167,9 +167,9 @@ function closeModal(id) {
    while the flow is still being built.
    ------------------------------------------------------------------------- */
 
-function mountDescopeFlow({ flowId, onComplete }) {
+function mountDescopeFlow({ flowId, onComplete, mountId = "flow-mount" }) {
   const wcExists = customElements.get("descope-wc");
-  const mount = document.getElementById("flow-mount");
+  const mount = document.getElementById(mountId);
   const isPlaceholderId = DESCOPE_PROJECT_ID === "YOUR_DESCOPE_PROJECT_ID";
 
   if (wcExists && !isPlaceholderId) {

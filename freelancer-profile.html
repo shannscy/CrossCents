@@ -33,13 +33,17 @@
     if (session) document.getElementById("who-name").textContent = session.name;
 
     const profile = FREELANCER_PROFILES["katelin-rivera"];
-    const initials = profile.name.split(" ").map((p) => p[0]).join("");
+    // Display name comes from whoever's actually signed in — the rest of the
+    // profile (headline, experience, skills) is Katelin's example content,
+    // since there's no real per-user profile data behind this yet.
+    const displayName = (session && session.name) || profile.name;
+    const initials = displayName.split(" ").map((p) => p[0]).join("").toUpperCase();
 
     document.getElementById("profile-root").innerHTML = `
       <div class="profile-header">
         <div class="profile-avatar">${initials}</div>
         <div>
-          <h2>${profile.name}</h2>
+          <h2>${displayName}</h2>
           <div class="headline">${profile.headline}</div>
           <div class="meta">${profile.location} · ${profile.yearsExp} years experience · ${profile.category}</div>
         </div>
