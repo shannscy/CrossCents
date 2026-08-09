@@ -52,9 +52,9 @@
   </div>
 
   <!-- Withdraw modal — this is the step-up verification moment.
-       This is where a real integration would call Verif8 (8x8 CPaaS) to
-       send an SMS one-time code, then confirm it before releasing funds.
-       See README for two ways to wire that up with Descope. -->
+       Verif8 (8x8 CPaaS) will send the SMS one-time code here, confirmed
+       before releasing funds. See README for two ways to wire that up
+       with Descope. -->
   <div class="modal-overlay" id="withdraw-modal">
     <div class="modal">
       <h3>Withdraw funds</h3>
@@ -74,7 +74,7 @@
       <div id="withdraw-step-otp" style="display:none;">
         <div class="otp-note">
           We texted a 6-digit code to your phone ending in •••89.
-          <br /><em>(Mock — a real build sends this via Verif8.)</em>
+          <br /><em>(SMS delivery via Verif8 not yet integrated.)</em>
         </div>
         <div class="field">
           <label>Verification code</label>
@@ -113,7 +113,7 @@
     if (session) document.getElementById("who-name").textContent = session.name;
 
     const txBody = document.getElementById("tx-body");
-    MOCK_TRANSACTIONS.forEach((tx) => {
+    SAMPLE_TRANSACTIONS.forEach((tx) => {
       const row = document.createElement("tr");
       row.innerHTML = `
         <td>${tx.company}</td>

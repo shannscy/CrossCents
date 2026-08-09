@@ -1,10 +1,10 @@
-/* CrossCents — shared demo logic
+/* CrossCents — shared app logic
    -----------------------------------------------------------------------
-   This is a MOCK app. There is no real backend, no real bank, no real
-   money movement. Its only real piece of plumbing is the Descope Flow
-   embed on the two login pages (freelancer-login.html / company-login.html).
+   Early build: the login pages (freelancer-login.html / company-login.html)
+   are wired to embed a real Descope Flow. The dashboards currently run on
+   sample data — there's no backend or ledger behind them yet.
 
-   HOW TO WIRE UP YOUR REAL DESCOPE PROJECT:
+   HOW TO WIRE UP YOUR DESCOPE PROJECT:
    1. Create your flows in the Descope console (console.descope.com).
    2. Copy your Project ID from Project Settings.
    3. Fill in the three constants below.
@@ -18,13 +18,13 @@ const DESCOPE_PROJECT_ID = "YOUR_DESCOPE_PROJECT_ID"; // <-- replace me
 const FREELANCER_FLOW_ID = "sign-up-or-in";            // <-- your freelancer flow id
 const COMPANY_FLOW_ID = "company-admin-login";          // <-- your company/admin flow id
 
-/* ---------------------------- mock session ---------------------------- */
+/* ------------------------------- session -------------------------------- */
 
 const Session = {
   set(role, name, org) {
     localStorage.setItem(
       "crosscents_session",
-      JSON.stringify({ role, name, org: org || null, at: "demo" })
+      JSON.stringify({ role, name, org: org || null })
     );
   },
   get() {
@@ -48,16 +48,16 @@ function logout(redirectTo) {
   window.location.href = redirectTo || "index.html";
 }
 
-/* ------------------------------ mock data ------------------------------ */
+/* ----------------------------- sample data ------------------------------ */
 
-const MOCK_TRANSACTIONS = [
+const SAMPLE_TRANSACTIONS = [
   { company: "Xentir Pte Ltd", amount: 1200, date: "Aug 4, 2026", status: "complete" },
   { company: "Northwind Labs", amount: 850, date: "Jul 28, 2026", status: "complete" },
   { company: "Xentir Pte Ltd", amount: 430, date: "Jul 14, 2026", status: "pending" },
   { company: "Fenwick & Co", amount: 2100, date: "Jul 2, 2026", status: "complete" },
 ];
 
-const MOCK_FREELANCERS = [
+const SAMPLE_FREELANCERS = [
   { name: "Alex Rivera", country: "Philippines", lastPaid: "Aug 4, 2026", status: "Active" },
   { name: "Priya Nandan", country: "India", lastPaid: "Jul 30, 2026", status: "Active" },
   { name: "Marco Bellini", country: "Italy", lastPaid: "Jul 22, 2026", status: "Active" },
@@ -97,9 +97,9 @@ function closeModal(id) {
    Descope Web Component mount helper.
    Call this on the login pages after the <descope-wc> tag exists in the DOM.
    If the real Descope script hasn't loaded (e.g. you haven't set your
-   Project ID yet), we fall back to a visible "Demo mode" button so you can
-   still click through the rest of the app while your Descope flow is a
-   work in progress.
+   Project ID yet), we fall back to a placeholder with a "continue without
+   signing in" button so you can still click through the rest of the app
+   while the flow is still being built.
    ------------------------------------------------------------------------- */
 
 function mountDescopeFlow({ flowId, onComplete }) {
@@ -117,9 +117,8 @@ function mountDescopeFlow({ flowId, onComplete }) {
 
     wc.addEventListener("success", (e) => {
       // e.detail typically carries the authenticated user's info once the
-      // flow completes. Real session/JWT handling should use the Descope
-      // Web JS SDK (sdk.getSessionToken() / sdk.refresh()) rather than
-      // this mock — see README for the real integration notes.
+      // flow completes. Session/JWT handling should use the Descope Web JS
+      // SDK (sdk.getSessionToken() / sdk.refresh()) — see README.
       const user = (e.detail && e.detail.user) || {};
       onComplete(user.name || user.email || "there");
     });
@@ -129,7 +128,7 @@ function mountDescopeFlow({ flowId, onComplete }) {
       showToast("Something went wrong with the sign-in flow — check the console.");
     });
   } else {
-    // No live Descope project wired up yet — show a placeholder + demo bypass.
+    // No live Descope project wired up yet — show a placeholder + bypass.
     mount.innerHTML = `
       <div class="placeholder-copy">
         <p><strong>Descope flow not connected yet.</strong></p>
@@ -141,9 +140,9 @@ function mountDescopeFlow({ flowId, onComplete }) {
   }
 }
 
-function demoBypassLogin(name) {
-  document.getElementById("demo-name")?.blur();
-  const input = document.getElementById("demo-name-input");
+function skipSignIn(name) {
+  document.getElementById("skip-name")?.blur();
+  const input = document.getElementById("skip-name-input");
   const finalName = (input && input.value.trim()) || name;
-  document.dispatchEvent(new CustomEvent("crosscents:demo-login", { detail: finalName }));
+  document.dispatchEvent(new CustomEvent("crosscents:skip-login", { detail: finalName }));
 }

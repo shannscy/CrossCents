@@ -35,20 +35,20 @@
         <div class="placeholder-copy">Loading sign-in…</div>
       </div>
 
-      <div class="demo-divider">or, while you're building your flow</div>
+      <div class="flow-divider">or, while sign-in isn't connected yet</div>
       <div class="field">
-        <label for="demo-name-input">Try it in demo mode</label>
-        <input id="demo-name-input" type="text" placeholder="Your name" value="Alex Rivera" />
+        <label for="skip-name-input">Skip sign-in for testing</label>
+        <input id="skip-name-input" type="text" placeholder="Your name" value="Alex Rivera" />
       </div>
-      <button class="btn btn-outline btn-block" onclick="demoBypassLogin('Alex Rivera')">
-        Continue as demo freelancer
+      <button class="btn btn-outline btn-block" onclick="skipSignIn('Alex Rivera')">
+        Continue without signing in
       </button>
     </div>
   </div>
 
   <script src="js/app.js"></script>
   <script>
-    document.addEventListener("crosscents:demo-login", (e) => {
+    document.addEventListener("crosscents:skip-login", (e) => {
       Session.set("freelancer", e.detail);
       window.location.href = "freelancer-dashboard.html";
     });

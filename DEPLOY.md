@@ -31,6 +31,7 @@ To update later: edit files in the repo (or re-upload) and it redeploys automati
   nothing to configure for hosting itself.
 - The two login pages will only show real sign-in once you wire up a Descope
   project ID (see the main README.md) — until then they fall back to a
-  "continue as demo" button, which is fine for showing the app off.
+  "continue without signing in" button, which is fine for showing the app
+  off while the Descope integration is still in progress.
 - If you want a custom domain later (e.g. crosscents.app), both GitHub Pages
   and Netlify support adding one for free once you own the domain.
