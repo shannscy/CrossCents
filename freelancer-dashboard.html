@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CrossCents — Freelancer dashboard</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <header class="dash-header">
+    <a class="logo" href="index.html">
+      <span class="logo-text"><span class="logo-c">C</span>ross<span class="logo-c">C</span>ents</span>
+    </a>
+    <div class="who">
+      Signed in as <strong id="who-name">—</strong>
+      <a href="#" class="btn btn-secondary btn-sm" style="margin-left:14px;" onclick="logout('freelancer-login.html'); return false;">Log out</a>
+    </div>
+  </header>
+
+  <div class="page">
+    <div class="stat-row">
+      <div class="stat-tile">
+        <div class="label">Available balance</div>
+        <div class="value emerald">$2,480.00</div>
+      </div>
+      <div class="stat-tile">
+        <div class="label">Pending</div>
+        <div class="value">$430.00</div>
+      </div>
+      <div class="stat-tile">
+        <div class="label">Lifetime earned</div>
+        <div class="value">$18,240.00</div>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn btn-primary" onclick="openModal('withdraw-modal')">Withdraw funds</button>
+      <button class="btn btn-outline" onclick="openModal('bank-modal')">Link bank account</button>
+    </div>
+
+    <div class="section-title">Recent payments</div>
+    <div class="card-table">
+      <table>
+        <thead>
+          <tr><th>Company</th><th>Amount</th><th>Date</th><th>Status</th></tr>
+        </thead>
+        <tbody id="tx-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Withdraw modal — this is the step-up verification moment.
+       This is where a real integration would call Verif8 (8x8 CPaaS) to
+       send an SMS one-time code, then confirm it before releasing funds.
+       See README for two ways to wire that up with Descope. -->
+  <div class="modal-overlay" id="withdraw-modal">
+    <div class="modal">
+      <h3>Withdraw funds</h3>
+      <div class="modal-sub">For your security, withdrawals require SMS verification.</div>
+
+      <div id="withdraw-step-amount">
+        <div class="field">
+          <label>Amount</label>
+          <input type="number" id="withdraw-amount" placeholder="0.00" value="500" />
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-outline" onclick="closeModal('withdraw-modal')">Cancel</button>
+          <button class="btn btn-primary" onclick="showWithdrawOtp()">Continue</button>
+        </div>
+      </div>
+
+      <div id="withdraw-step-otp" style="display:none;">
+        <div class="otp-note">
+          We texted a 6-digit code to your phone ending in •••89.
+          <br /><em>(Mock — a real build sends this via Verif8.)</em>
+        </div>
+        <div class="field">
+          <label>Verification code</label>
+          <input type="text" id="withdraw-otp" placeholder="123456" maxlength="6" />
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-outline" onclick="closeModal('withdraw-modal')">Cancel</button>
+          <button class="btn btn-primary" onclick="confirmWithdraw()">Verify & withdraw</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="bank-modal">
+    <div class="modal">
+      <h3>Link bank account</h3>
+      <div class="modal-sub">Adding a payout method also requires verification.</div>
+      <div class="field">
+        <label>Account holder name</label>
+        <input type="text" placeholder="Alex Rivera" />
+      </div>
+      <div class="field">
+        <label>IBAN / account number</label>
+        <input type="text" placeholder="•••• •••• •••• 4821" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeModal('bank-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="linkBank()">Save & verify</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    const session = Session.requireRole("freelancer", "freelancer-login.html");
+    if (session) document.getElementById("who-name").textContent = session.name;
+
+    const txBody = document.getElementById("tx-body");
+    MOCK_TRANSACTIONS.forEach((tx) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${tx.company}</td>
+        <td>${formatCurrency(tx.amount)}</td>
+        <td>${tx.date}</td>
+        <td><span class="status-pill ${tx.status}">${tx.status === "complete" ? "Complete" : "Pending"}</span></td>
+      `;
+      txBody.appendChild(row);
+    });
+
+    function showWithdrawOtp() {
+      document.getElementById("withdraw-step-amount").style.display = "none";
+      document.getElementById("withdraw-step-otp").style.display = "block";
+    }
+
+    function confirmWithdraw() {
+      const amount = document.getElementById("withdraw-amount").value || "0.00";
+      closeModal("withdraw-modal");
+      document.getElementById("withdraw-step-amount").style.display = "block";
+      document.getElementById("withdraw-step-otp").style.display = "none";
+      showToast(`Withdrawal of $${amount} verified and initiated.`);
+    }
+
+    function linkBank() {
+      closeModal("bank-modal");
+      showToast("Bank account linked (pending verification).");
+    }
+  </script>
+</body>
+</html>

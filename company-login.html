@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CrossCents — Company sign in</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <script src="https://descopecdn.com/npm/@descope/web-component@latest/dist/index.js"></script>
+</head>
+<body>
+
+  <nav class="nav">
+    <a class="logo" href="index.html"><span class="logo-text"><span class="logo-c">C</span>ross<span class="logo-c">C</span>ents</span></a>
+    <div class="nav-links"></div>
+    <div class="nav-actions">
+      <a class="btn btn-secondary btn-sm" href="index.html">Back home</a>
+    </div>
+  </nav>
+
+  <div class="center-page">
+    <div class="auth-card">
+      <span class="auth-badge company">Company admin</span>
+      <h2>Sign in to CrossCents Business</h2>
+      <div class="subtitle">
+        Admin accounts require a second verification step at sign-in —
+        you're able to move money, so login itself is higher-assurance.
+      </div>
+
+      <div class="flow-mount" id="flow-mount">
+        <div class="placeholder-copy">Loading sign-in…</div>
+      </div>
+
+      <div class="demo-divider">or, while you're building your flow</div>
+      <div class="field">
+        <label for="demo-name-input">Try it in demo mode</label>
+        <input id="demo-name-input" type="text" placeholder="Your name" value="Jordan Lee" />
+      </div>
+      <button class="btn btn-outline btn-block" onclick="demoBypassLogin('Jordan Lee')">
+        Continue as demo admin
+      </button>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener("crosscents:demo-login", (e) => {
+      Session.set("company", e.detail, "Xentir Pte Ltd");
+      window.location.href = "company-dashboard.html";
+    });
+
+    mountDescopeFlow({
+      flowId: COMPANY_FLOW_ID,
+      onComplete: (name) => {
+        Session.set("company", name, "Xentir Pte Ltd");
+        window.location.href = "company-dashboard.html";
+      },
+    });
+  </script>
+</body>
+</html>
