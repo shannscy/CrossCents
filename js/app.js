@@ -51,7 +51,7 @@ const SAMPLE_TRANSACTIONS = [
 ];
 
 const SAMPLE_FREELANCERS = [
-  { name: "Alex Rivera", country: "Philippines", lastPaid: "Aug 4, 2026", status: "Active" },
+  { name: "Katelin Rivera", country: "Philippines", lastPaid: "Aug 4, 2026", status: "Active" },
   { name: "Priya Nandan", country: "India", lastPaid: "Jul 30, 2026", status: "Active" },
   { name: "Marco Bellini", country: "Italy", lastPaid: "Jul 22, 2026", status: "Active" },
   { name: "Sena Okafor", country: "Nigeria", lastPaid: "-", status: "Pending onboarding" },
@@ -60,6 +60,78 @@ const SAMPLE_FREELANCERS = [
 function formatCurrency(n) {
   return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+
+/* ---------------------------- job marketplace ---------------------------- */
+
+const JOB_CATEGORIES = ["Sales", "Tech", "Business Development", "Marketing", "Design", "Operations"];
+
+const SAMPLE_JOBS = [
+  { id: "j1", title: "Account Executive", company: "Growthly Labs", category: "Sales", type: "Short-term", duration: "3 months", budget: "$9,000/mo", location: "Remote", posted: "Aug 5, 2026", description: "Own the full sales cycle for our mid-market SaaS product, from discovery to close.", skills: ["B2B SaaS", "CRM", "Outbound Sales"] },
+  { id: "j2", title: "Sales Development Rep", company: "Solace Analytics", category: "Sales", type: "Short-term", duration: "6 months", budget: "$5,000/mo", location: "Remote", posted: "Aug 3, 2026", description: "Qualify inbound leads and build outbound pipeline for our analytics platform.", skills: ["Cold Outreach", "HubSpot", "Qualifying"] },
+  { id: "j3", title: "Frontend Engineer (React)", company: "Fenwick & Co", category: "Tech", type: "One-off", duration: "6-week build", budget: "$12,000 flat", location: "Remote", posted: "Aug 6, 2026", description: "Ship a new customer-facing dashboard in React and TypeScript.", skills: ["React", "TypeScript", "CSS"] },
+  { id: "j4", title: "Backend Engineer (Node.js)", company: "Xentir Pte Ltd", category: "Tech", type: "Short-term", duration: "4 months", budget: "$95/hr", location: "Remote", posted: "Jul 30, 2026", description: "Build out our payments service's ledger API on Node.js and Postgres.", skills: ["Node.js", "PostgreSQL", "AWS"] },
+  { id: "j5", title: "Business Development Manager", company: "Northwind Labs", category: "Business Development", type: "Short-term", duration: "6 months", budget: "$7,500/mo", location: "Remote (US hours)", posted: "Aug 1, 2026", description: "Source and close regional partnerships to open a new market.", skills: ["Partnerships", "Lead Gen", "Negotiation"] },
+  { id: "j6", title: "Product Marketing Manager", company: "Solace Analytics", category: "Marketing", type: "Short-term", duration: "3 months", budget: "$6,800/mo", location: "Remote", posted: "Jul 28, 2026", description: "Lead positioning and launch for our new analytics module.", skills: ["Positioning", "Content", "Launch"] },
+  { id: "j7", title: "Growth Marketer", company: "Vantage Cloud", category: "Marketing", type: "One-off", duration: "Campaign", budget: "$4,200 flat", location: "Remote", posted: "Aug 4, 2026", description: "Run a paid social and SEO push for our Q3 signup campaign.", skills: ["Paid Social", "SEO", "A/B Testing"] },
+  { id: "j8", title: "Product Designer", company: "Fenwick & Co", category: "Design", type: "One-off", duration: "Design sprint", budget: "$6,000 flat", location: "Remote", posted: "Jul 26, 2026", description: "Run a 2-week design sprint for a new onboarding flow.", skills: ["Figma", "UX Research", "Prototyping"] },
+  { id: "j9", title: "Ops Coordinator", company: "Vantage Cloud", category: "Operations", type: "One-off", duration: "6 weeks", budget: "$3,200 flat", location: "Remote", posted: "Jul 22, 2026", description: "Stand up vendor management and internal process docs.", skills: ["Process Design", "Vendor Mgmt"] },
+];
+
+/* ----------------------------- talent profiles ---------------------------- */
+
+const FREELANCER_PROFILES = {
+  "katelin-rivera": {
+    name: "Katelin Rivera",
+    headline: "Senior Account Executive · Mid-Market B2B SaaS (Horizontal CRM)",
+    location: "Manila, Philippines",
+    yearsExp: 10,
+    category: "Sales",
+    skills: ["B2B SaaS Sales", "Horizontal CRM", "Mid-Market", "Full-Cycle Sales", "Salesforce", "HubSpot", "Negotiation", "Forecasting"],
+    summary: "Account executive with 10+ years selling horizontal CRM software into mid-market B2B SaaS companies. I like building pipeline as much as closing it, and I've onboarded and mentored new AEs at every company I've worked at.",
+    experience: [
+      { role: "Senior Account Executive", company: "PipelinePro", period: "2021 — Present", desc: "Closing $2M+ ARR a year in mid-market deals for a horizontal CRM platform, consistently top 10% of the sales org." },
+      { role: "Account Executive", company: "Vantage Cloud", period: "2018 — 2021", desc: "Owned full-cycle sales for mid-market SaaS accounts, growing a book of business from $0 to $850K ARR." },
+      { role: "SDR → Account Executive", company: "Northwind Labs", period: "2015 — 2018", desc: "Started in SDR, promoted to AE within 18 months after consistently exceeding quota." },
+    ],
+  },
+  "priya-nandan": {
+    name: "Priya Nandan",
+    headline: "Business Development Manager · Partnerships & Expansion",
+    location: "Bengaluru, India",
+    yearsExp: 7,
+    category: "Business Development",
+    skills: ["Partnerships", "Channel Sales", "Lead Generation", "Negotiation"],
+    summary: "Business development manager focused on partner-led growth for B2B SaaS companies expanding into new markets.",
+    experience: [
+      { role: "Business Development Manager", company: "Solace Analytics", period: "2022 — Present", desc: "Built and ran the partner program from scratch, now 30% of new pipeline." },
+      { role: "BD Associate", company: "Xentir Pte Ltd", period: "2019 — 2022", desc: "Sourced and closed regional channel partnerships across Southeast Asia." },
+    ],
+  },
+  "marco-bellini": {
+    name: "Marco Bellini",
+    headline: "Frontend Engineer · React & TypeScript",
+    location: "Milan, Italy",
+    yearsExp: 6,
+    category: "Tech",
+    skills: ["React", "TypeScript", "CSS", "Design Systems"],
+    summary: "Frontend engineer who's spent the last few years building and maintaining design systems for fast-moving product teams.",
+    experience: [
+      { role: "Frontend Engineer", company: "Fenwick & Co", period: "2020 — Present", desc: "Built and maintain the component library used across four product lines." },
+    ],
+  },
+  "sena-okafor": {
+    name: "Sena Okafor",
+    headline: "Growth Marketer · Paid Social & SEO",
+    location: "Lagos, Nigeria",
+    yearsExp: 5,
+    category: "Marketing",
+    skills: ["Paid Social", "SEO", "A/B Testing", "Lifecycle Marketing"],
+    summary: "Growth marketer focused on paid acquisition and lifecycle campaigns for early-stage SaaS.",
+    experience: [
+      { role: "Growth Marketer", company: "Vantage Cloud", period: "2023 — Present", desc: "Cut paid CAC by 34% in the first two quarters through channel reallocation." },
+    ],
+  },
+};
 
 /* -------------------------------- toast -------------------------------- */
 

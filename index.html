@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CrossCents — Get paid across borders</title>
-  <meta name="description" content="CrossCents connects companies with the freelancers they hire anywhere — borderless, frictionless sign-in for payments that matter." />
+  <title>CrossCents — Work across borders, get paid without the wait</title>
+  <meta name="description" content="CrossCents is a marketplace where companies hire freelance talent for one-off and short-term roles, and freelancers find their next role anytime, anywhere, across borders — with payment built into every contract." />
   <meta name="theme-color" content="#0f172a" />
-  <meta property="og:title" content="CrossCents — Get paid across borders" />
-  <meta property="og:description" content="Companies pay freelancers across borders, with secure sign-in built in." />
+  <meta property="og:title" content="CrossCents — Work across borders, get paid without the wait" />
+  <meta property="og:description" content="Companies post jobs, freelancers build a profile and apply, and payment happens on-platform once a contract is signed." />
   <meta property="og:type" content="website" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="stylesheet" href="css/styles.css" />
@@ -18,21 +18,67 @@
     <div class="logo"><span class="logo-text"><span class="logo-c">C</span>ross<span class="logo-c">C</span>ents</span></div>
     <div class="nav-links">
       <a href="#how-it-works">How it works</a>
-      <a href="freelancer-login.html">For freelancers</a>
-      <a href="company-login.html">For companies</a>
+      <a href="#categories">For freelancers</a>
+      <a href="#categories">For companies</a>
+      <a href="about.html">About us</a>
+      <a href="chat.html">Chat with us</a>
     </div>
     <div class="nav-actions">
-      <a class="btn btn-primary btn-sm" href="freelancer-login.html">Freelancer login</a>
-      <a class="btn btn-secondary btn-sm" href="company-login.html">Company login</a>
+      <a class="btn btn-primary btn-sm" href="contact.html">Contact us</a>
     </div>
   </nav>
 
   <section class="hero">
-    <h1>Payment across borders, without the wait.</h1>
+    <div class="category-row" style="margin-bottom:18px;">
+      <span class="category-chip" style="cursor:default;">Anytime</span>
+      <span class="category-chip" style="cursor:default;">Anywhere</span>
+      <span class="category-chip" style="cursor:default;">Across borders</span>
+    </div>
+    <h1>Work across borders, get paid without the wait.</h1>
     <p>
-      CrossCents connects companies with the freelancers they hire anywhere and
-      anytime - borderless, frictionless sign-ins for payments that matter.
+      CrossCents is a marketplace for one-off and short-term work: companies post jobs,
+      freelancers build a profile and apply — and find their next role anytime, anywhere,
+      across borders. Payment happens right on the platform once a contract is signed.
     </p>
+
+    <form class="hero-search" onsubmit="event.preventDefault(); window.location.href = 'freelancer-jobs.html?q=' + encodeURIComponent(this.q.value);">
+      <input name="q" type="text" placeholder="Search jobs — try &quot;Account Executive&quot; or &quot;React&quot;" />
+      <button class="btn btn-primary" type="submit">Search jobs</button>
+    </form>
+
+    <div class="category-row" id="categories">
+      <a class="category-chip" href="freelancer-jobs.html?category=Sales">Sales</a>
+      <a class="category-chip" href="freelancer-jobs.html?category=Tech">Tech</a>
+      <a class="category-chip" href="freelancer-jobs.html?category=Business%20Development">Business Development</a>
+      <a class="category-chip" href="freelancer-jobs.html?category=Marketing">Marketing</a>
+      <a class="category-chip" href="freelancer-jobs.html?category=Design">Design</a>
+      <a class="category-chip" href="freelancer-jobs.html?category=Operations">Operations</a>
+    </div>
+
+    <div class="hero-visual" aria-hidden="true">
+      <div class="hero-visual-scene scene-1">
+        <div class="avatar">KR</div>
+        <div class="scene-text">
+          <div class="scene-title">Katelin applied</div>
+          <div class="scene-sub">Account Executive role at Growthly Labs</div>
+        </div>
+      </div>
+      <div class="hero-visual-scene scene-2">
+        <div class="avatar">✓</div>
+        <div class="scene-text">
+          <div class="scene-title">Contract signed</div>
+          <div class="scene-sub">Terms agreed — 3 months, $9,000/mo</div>
+        </div>
+      </div>
+      <div class="hero-visual-scene scene-3">
+        <div class="avatar">$</div>
+        <div class="scene-text">
+          <div class="scene-title">Payment received</div>
+          <div class="scene-sub">$9,000.00 landed in her balance</div>
+        </div>
+      </div>
+    </div>
+
     <div class="hero-actions">
       <a class="btn btn-primary" href="freelancer-login.html">I'm a freelancer</a>
       <a class="btn btn-outline" href="company-login.html">I'm a company</a>
@@ -43,26 +89,26 @@
     <div class="paths">
       <div class="path-card freelancer">
         <span class="path-label freelancer">For freelancers</span>
-        <h3>Receive payments without friction</h3>
+        <h3>Find your next role, anywhere</h3>
         <div class="path-step">
           <div class="path-step-num">1</div>
           <div>
-            <h4>No passwords</h4>
-            <p>An email link or one-time code — no password to forget or leak.</p>
+            <h4>Build a profile</h4>
+            <p>Showcase your skills and experience, LinkedIn-style — no rates to market, no pitching required.</p>
           </div>
         </div>
         <div class="path-step">
           <div class="path-step-num">2</div>
           <div>
-            <h4>Get paid by companies</h4>
-            <p>Payments from every client land in one CrossCents balance.</p>
+            <h4>Browse and apply</h4>
+            <p>Search one-off and short-term roles across sales, tech, business dev, marketing, design and ops.</p>
           </div>
         </div>
         <div class="path-step">
           <div class="path-step-num">3</div>
           <div>
-            <h4>Withdraw with confidence</h4>
-            <p>Moving money out triggers a quick SMS verification step.</p>
+            <h4>Sign, then get paid</h4>
+            <p>Once terms are agreed and the contract's signed, payment runs through CrossCents — no chasing invoices.</p>
           </div>
         </div>
         <div class="action-row">
@@ -72,26 +118,26 @@
 
       <div class="path-card company">
         <span class="path-label company">For companies</span>
-        <h3>Pay your global team, securely</h3>
+        <h3>Hire talent for the work in front of you</h3>
         <div class="path-step">
           <div class="path-step-num">1</div>
           <div>
-            <h4>Sign in with MFA</h4>
-            <p>Move money with ease after authentication.</p>
+            <h4>Post the job</h4>
+            <p>One-off project or a short-term contract — describe the work, the budget, and the duration.</p>
           </div>
         </div>
         <div class="path-step">
           <div class="path-step-num">2</div>
           <div>
-            <h4>Add your freelancers</h4>
-            <p>Bring your contractors onto CrossCents in a few clicks.</p>
+            <h4>Review talent</h4>
+            <p>Search profiles by skill and category, and see who's applied to your listing.</p>
           </div>
         </div>
         <div class="path-step">
           <div class="path-step-num">3</div>
           <div>
-            <h4>Send payments securely</h4>
-            <p>Pay anyone, anywhere, with full visibility into every transfer.</p>
+            <h4>Sign and pay, on platform</h4>
+            <p>Agree terms, sign the contract, and send payment without leaving CrossCents.</p>
           </div>
         </div>
         <div class="action-row">
@@ -101,7 +147,10 @@
     </div>
   </div>
 
-  <div class="footer">© 2026 CrossCents. All payments shown are illustrative.</div>
+  <div class="footer">
+    © 2026 CrossCents · <a href="about.html">About us</a> · <a href="contact.html">Contact us</a> · <a href="chat.html">Chat with us</a><br />
+    All jobs, profiles and payments shown are illustrative.
+  </div>
 
 </body>
 </html>

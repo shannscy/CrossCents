@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CrossCents — My Profile</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <header class="dash-header">
+    <a class="logo" href="index.html">
+      <span class="logo-text"><span class="logo-c">C</span>ross<span class="logo-c">C</span>ents</span>
+    </a>
+    <div class="who">
+      Signed in as <strong id="who-name">—</strong>
+      <a href="#" class="btn btn-secondary btn-sm" style="margin-left:14px;" onclick="logout('freelancer-login.html'); return false;">Log out</a>
+    </div>
+  </header>
+
+  <nav class="subnav">
+    <a href="freelancer-jobs.html">Jobs</a>
+    <a href="freelancer-profile.html" class="active">My Profile</a>
+    <a href="freelancer-dashboard.html">Payments</a>
+  </nav>
+
+  <div class="page-narrow" id="profile-root"></div>
+
+  <script src="js/app.js"></script>
+  <script>
+    const session = Session.requireRole("freelancer", "freelancer-login.html");
+    if (session) document.getElementById("who-name").textContent = session.name;
+
+    const profile = FREELANCER_PROFILES["katelin-rivera"];
+    const initials = profile.name.split(" ").map((p) => p[0]).join("");
+
+    document.getElementById("profile-root").innerHTML = `
+      <div class="profile-header">
+        <div class="profile-avatar">${initials}</div>
+        <div>
+          <h2>${profile.name}</h2>
+          <div class="headline">${profile.headline}</div>
+          <div class="meta">${profile.location} · ${profile.yearsExp} years experience · ${profile.category}</div>
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <h3>About</h3>
+        <p>${profile.summary}</p>
+      </div>
+
+      <div class="profile-section">
+        <h3>Experience</h3>
+        ${profile.experience.map((exp) => `
+          <div class="experience-item">
+            <div class="role">${exp.role}</div>
+            <div class="company-line">${exp.company} · ${exp.period}</div>
+            <div class="desc">${exp.desc}</div>
+          </div>
+        `).join("")}
+      </div>
+
+      <div class="profile-section">
+        <h3>Skills</h3>
+        <div class="skill-tag-row">
+          ${profile.skills.map((s) => `<span class="skill-tag">${s}</span>`).join("")}
+        </div>
+      </div>
+    `;
+  </script>
+</body>
+</html>

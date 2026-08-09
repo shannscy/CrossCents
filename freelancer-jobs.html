@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CrossCents — Job marketplace</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <header class="dash-header">
+    <a class="logo" href="index.html">
+      <span class="logo-text"><span class="logo-c">C</span>ross<span class="logo-c">C</span>ents</span>
+    </a>
+    <div class="who" id="who-row">
+      <a href="freelancer-login.html" class="btn btn-secondary btn-sm">Sign in</a>
+    </div>
+  </header>
+
+  <nav class="subnav">
+    <a href="freelancer-jobs.html" class="active">Jobs</a>
+    <a href="freelancer-profile.html">My Profile</a>
+    <a href="freelancer-dashboard.html">Payments</a>
+  </nav>
+
+  <div class="page">
+    <div class="section-title" style="margin-top:0;">Job marketplace</div>
+
+    <div class="page-search">
+      <input type="text" id="job-search" placeholder="Search jobs — title, company, or skill" />
+      <button class="btn btn-primary btn-sm" onclick="renderJobs()">Search</button>
+    </div>
+
+    <div class="category-row" style="justify-content:flex-start; margin-bottom:24px;" id="job-categories">
+      <button class="category-chip active" data-category="">All</button>
+    </div>
+
+    <div class="listing-grid" id="job-list"></div>
+  </div>
+
+  <!-- Apply / contract modal -->
+  <div class="modal-overlay" id="apply-modal">
+    <div class="modal">
+      <h3 id="apply-title">Apply</h3>
+      <div class="modal-sub" id="apply-sub">—</div>
+      <div class="otp-note" id="apply-terms">—</div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeModal('apply-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="confirmApply()">Accept & sign contract</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    const session = Session.get();
+    if (session && session.role === "freelancer") {
+      document.getElementById("who-row").innerHTML = `
+        Signed in as <strong>${session.name}</strong>
+        <a href="#" class="btn btn-secondary btn-sm" style="margin-left:14px;" onclick="logout('freelancer-login.html'); return false;">Log out</a>
+      `;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    let activeCategory = params.get("category") || "";
+
+    const catRow = document.getElementById("job-categories");
+    JOB_CATEGORIES.forEach((cat) => {
+      const btn = document.createElement("button");
+      btn.className = "category-chip" + (cat === activeCategory ? " active" : "");
+      btn.textContent = cat;
+      btn.setAttribute("data-category", cat);
+      catRow.appendChild(btn);
+    });
+    if (!activeCategory) catRow.firstElementChild.classList.add("active");
+
+    catRow.addEventListener("click", (e) => {
+      if (e.target.tagName !== "BUTTON") return;
+      activeCategory = e.target.getAttribute("data-category") || "";
+      catRow.querySelectorAll(".category-chip").forEach((c) => c.classList.remove("active"));
+      e.target.classList.add("active");
+      renderJobs();
+    });
+
+    document.getElementById("job-search").value = params.get("q") || "";
+
+    let applyTarget = null;
+
+    function renderJobs() {
+      const q = document.getElementById("job-search").value.trim().toLowerCase();
+      const list = document.getElementById("job-list");
+      list.innerHTML = "";
+
+      const filtered = SAMPLE_JOBS.filter((job) => {
+        const matchesCategory = !activeCategory || job.category === activeCategory;
+        const haystack = (job.title + " " + job.company + " " + job.skills.join(" ")).toLowerCase();
+        const matchesQuery = !q || haystack.includes(q);
+        return matchesCategory && matchesQuery;
+      });
+
+      if (filtered.length === 0) {
+        list.innerHTML = `<div class="listing-card"><div class="listing-main"><p style="color:var(--navy-soft); margin:0;">No jobs match that search yet — try another term or category.</p></div></div>`;
+        return;
+      }
+
+      filtered.forEach((job) => {
+        const card = document.createElement("div");
+        card.className = "listing-card";
+        card.innerHTML = `
+          <div class="listing-main">
+            <h4>${job.title}</h4>
+            <div class="listing-meta">${job.company} · ${job.category} · ${job.type} (${job.duration}) · ${job.location} · Posted ${job.posted}</div>
+            <div class="listing-desc">${job.description}</div>
+            <div class="tag-row">${job.skills.map((s) => `<span class="tag">${s}</span>`).join("")}</div>
+          </div>
+          <div class="listing-side">
+            <div class="listing-budget">${job.budget}</div>
+            <button class="btn btn-primary btn-sm" data-job-id="${job.id}">Apply</button>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    document.getElementById("job-list").addEventListener("click", (e) => {
+      if (e.target.tagName !== "BUTTON" || !e.target.dataset.jobId) return;
+      const currentSession = Session.get();
+      if (!currentSession || currentSession.role !== "freelancer") {
+        window.location.href = "freelancer-login.html";
+        return;
+      }
+      applyTarget = SAMPLE_JOBS.find((j) => j.id === e.target.dataset.jobId);
+      document.getElementById("apply-title").textContent = `Apply — ${applyTarget.title}`;
+      document.getElementById("apply-sub").textContent = `${applyTarget.company} · ${applyTarget.type} · ${applyTarget.duration}`;
+      document.getElementById("apply-terms").innerHTML = `
+        <strong>Contract terms</strong><br />
+        Rate: ${applyTarget.budget}<br />
+        Duration: ${applyTarget.duration}<br />
+        Payment: released through CrossCents once terms are agreed and signed.
+      `;
+      openModal("apply-modal");
+    });
+
+    function confirmApply() {
+      closeModal("apply-modal");
+      showToast(`Contract signed with ${applyTarget.company} — payment runs through CrossCents once work begins.`);
+    }
+
+    renderJobs();
+  </script>
+</body>
+</html>

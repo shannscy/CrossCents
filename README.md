@@ -1,31 +1,40 @@
 # CrossCents
 
-CrossCents lets companies pay the freelancers they hire anywhere — borderless,
-frictionless sign-in for payments that matter. This repo is the front-end
-for the product: the UI, the auth surfaces, and the sign-in flows that
-everything else gets built around.
+CrossCents is a marketplace for one-off and short-term work. Companies post
+jobs; freelancers build a profile — LinkedIn-style, no rates to market — and
+apply. Payment runs through the platform itself once a contract is signed,
+across borders, without the wait. This repo is the front-end: the UI, the
+auth surfaces, and the sign-in flows everything else gets built around.
 
 ## Current state
 
 - **Built:** the login pages (`freelancer-login.html`, `company-login.html`)
   are wired to embed Descope's Web Component. Once you set your Project ID
   and Flow IDs, clicking "sign in" launches your real Descope flow.
-- **Not yet built:** balances, transactions, the freelancer list, and the
-  "send payment" / "withdraw" actions currently run on sample data — there's
-  no backend or ledger behind them yet. Those screens exist to give the
-  auth moments (login, step-up verification) a real context to sit in while
-  the rest of the product gets built out.
+- **Not yet built:** job listings, talent profiles, balances, transactions,
+  and the "send payment" / "withdraw" / "post a job" actions currently run
+  on sample data in `js/app.js` — there's no backend or ledger behind them
+  yet. Those screens exist to give the auth moments (login, step-up
+  verification) a real context to sit in while the rest of the product
+  gets built out.
 
 ## File structure
 
 ```
-index.html                  landing page
-freelancer-login.html       Descope flow embed — freelancer sign-up/in
-freelancer-dashboard.html   balance, transactions, withdraw (step-up), link bank
-company-login.html          Descope flow embed — company admin sign-in (MFA)
-company-dashboard.html      freelancer list, send payment
-css/styles.css              shared styling
-js/app.js                   sample data, session handling, Descope mount helper
+index.html                  landing page — hero, search, categories, how it works
+about.html                   CrossCents summary + founder bio
+contact.html                 contact form (business email / phone)
+chat.html                     mocked chat-with-us widget
+freelancer-login.html        Descope flow embed — freelancer sign-up/in
+freelancer-jobs.html         job marketplace — search, category filter, apply + sign contract
+freelancer-profile.html      Katelin Rivera's LinkedIn-style profile
+freelancer-dashboard.html    balance, transactions, withdraw (step-up), link bank (step-up)
+company-login.html           Descope flow embed — company admin sign-in (MFA)
+company-talent.html          browse/search freelancer profiles
+company-post-job.html        post a job + your posted jobs
+company-dashboard.html       freelancer list, send payment
+css/styles.css               shared styling
+js/app.js                    sample data (jobs, profiles), session handling, Descope mount helper
 ```
 
 ## Running it

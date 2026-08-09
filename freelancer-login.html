@@ -38,9 +38,9 @@
       <div class="flow-divider">or, while sign-in isn't connected yet</div>
       <div class="field">
         <label for="skip-name-input">Skip sign-in for testing</label>
-        <input id="skip-name-input" type="text" placeholder="Your name" value="Alex Rivera" />
+        <input id="skip-name-input" type="text" placeholder="Your name" value="Katelin Rivera" />
       </div>
-      <button class="btn btn-outline btn-block" onclick="skipSignIn('Alex Rivera')">
+      <button class="btn btn-outline btn-block" onclick="skipSignIn('Katelin Rivera')">
         Continue without signing in
       </button>
     </div>
@@ -50,14 +50,14 @@
   <script>
     document.addEventListener("crosscents:skip-login", (e) => {
       Session.set("freelancer", e.detail);
-      window.location.href = "freelancer-dashboard.html";
+      window.location.href = "freelancer-jobs.html";
     });
 
     mountDescopeFlow({
       flowId: FREELANCER_FLOW_ID,
       onComplete: (name) => {
         Session.set("freelancer", name);
-        window.location.href = "freelancer-dashboard.html";
+        window.location.href = "freelancer-jobs.html";
       },
     });
   </script>

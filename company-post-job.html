@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CrossCents Business — Post a job</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <header class="dash-header">
+    <a class="logo" href="index.html">
+      <span class="logo-text"><span class="logo-c">C</span>ross<span class="logo-c">C</span>ents</span>
+    </a>
+    <div class="who">
+      <strong id="who-org">—</strong> · <span id="who-name">—</span>
+      <span class="role-badge">Admin</span>
+      <a href="#" class="btn btn-secondary btn-sm" style="margin-left:14px;" onclick="logout('company-login.html'); return false;">Log out</a>
+    </div>
+  </header>
+
+  <nav class="subnav">
+    <a href="company-talent.html">Talent</a>
+    <a href="company-post-job.html" class="active">Post a Job</a>
+    <a href="company-dashboard.html">Payments</a>
+  </nav>
+
+  <div class="page">
+    <div class="section-title" style="margin-top:0;">Post a job</div>
+
+    <div class="profile-section" style="max-width:640px;">
+      <div class="field">
+        <label>Job title</label>
+        <input type="text" id="job-title" placeholder="e.g. Account Executive" />
+      </div>
+      <div class="field">
+        <label>Category</label>
+        <select id="job-category"></select>
+      </div>
+      <div class="field">
+        <label>Type</label>
+        <select id="job-type">
+          <option>One-off</option>
+          <option>Short-term</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Duration</label>
+        <input type="text" id="job-duration" placeholder="e.g. 3 months, or 6-week build" />
+      </div>
+      <div class="field">
+        <label>Budget</label>
+        <input type="text" id="job-budget" placeholder="e.g. $7,500/mo or $5,000 flat" />
+      </div>
+      <div class="field">
+        <label>Location</label>
+        <input type="text" id="job-location" placeholder="Remote" value="Remote" />
+      </div>
+      <div class="field">
+        <label>Description</label>
+        <input type="text" id="job-description" placeholder="What does this role need to get done?" />
+      </div>
+      <div class="field">
+        <label>Skills (comma separated)</label>
+        <input type="text" id="job-skills" placeholder="e.g. B2B SaaS, CRM, Outbound Sales" />
+      </div>
+      <button class="btn btn-primary" onclick="postJob()">Post job</button>
+    </div>
+
+    <div class="section-title">Your posted jobs</div>
+    <div class="listing-grid" id="posted-jobs"></div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    const session = Session.requireRole("company", "company-login.html");
+    let companyName = "Xentir Pte Ltd";
+    if (session) {
+      document.getElementById("who-name").textContent = session.name;
+      companyName = session.org || "Xentir Pte Ltd";
+      document.getElementById("who-org").textContent = companyName;
+    }
+
+    const categorySelect = document.getElementById("job-category");
+    JOB_CATEGORIES.forEach((cat) => {
+      const opt = document.createElement("option");
+      opt.value = cat;
+      opt.textContent = cat;
+      categorySelect.appendChild(opt);
+    });
+
+    let postedJobs = SAMPLE_JOBS.filter((j) => j.company === companyName);
+
+    function renderPostedJobs() {
+      const list = document.getElementById("posted-jobs");
+      list.innerHTML = "";
+      if (postedJobs.length === 0) {
+        list.innerHTML = `<div class="listing-card"><div class="listing-main"><p style="color:var(--navy-soft); margin:0;">No jobs posted yet — the form above adds one.</p></div></div>`;
+        return;
+      }
+      postedJobs.forEach((job) => {
+        const card = document.createElement("div");
+        card.className = "listing-card";
+        card.innerHTML = `
+          <div class="listing-main">
+            <h4>${job.title}</h4>
+            <div class="listing-meta">${job.category} · ${job.type} (${job.duration}) · ${job.location} · Posted ${job.posted}</div>
+            <div class="listing-desc">${job.description}</div>
+            <div class="tag-row">${job.skills.map((s) => `<span class="tag">${s}</span>`).join("")}</div>
+          </div>
+          <div class="listing-side">
+            <div class="listing-budget">${job.budget}</div>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    function postJob() {
+      const title = document.getElementById("job-title").value.trim();
+      const description = document.getElementById("job-description").value.trim();
+      if (!title || !description) {
+        showToast("Add a job title and description before posting.");
+        return;
+      }
+      const job = {
+        id: "posted-" + Date.now(),
+        title,
+        company: companyName,
+        category: categorySelect.value,
+        type: document.getElementById("job-type").value,
+        duration: document.getElementById("job-duration").value.trim() || "Not specified",
+        budget: document.getElementById("job-budget").value.trim() || "Not specified",
+        location: document.getElementById("job-location").value.trim() || "Remote",
+        posted: "Just now",
+        description,
+        skills: document.getElementById("job-skills").value.split(",").map((s) => s.trim()).filter(Boolean),
+      };
+      postedJobs = [job, ...postedJobs];
+      renderPostedJobs();
+      showToast("Job posted — freelancers can now find it in the marketplace.");
+      ["job-title", "job-duration", "job-budget", "job-description", "job-skills"].forEach((id) => {
+        document.getElementById(id).value = "";
+      });
+    }
+
+    renderPostedJobs();
+  </script>
+</body>
+</html>
