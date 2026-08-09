@@ -1,22 +1,14 @@
 /* CrossCents — shared app logic
    -----------------------------------------------------------------------
-   Early build: the login pages (freelancer-login.html / company-login.html)
-   are wired to embed a real Descope Flow. The dashboards currently run on
+   The login pages (freelancer-login.html / company-login.html) are wired
+   to the crosscents Descope project. The dashboards currently run on
    sample data — there's no backend or ledger behind them yet.
-
-   HOW TO WIRE UP YOUR DESCOPE PROJECT:
-   1. Create your flows in the Descope console (console.descope.com).
-   2. Copy your Project ID from Project Settings.
-   3. Fill in the three constants below.
-   4. On each login page, the Descope console's "Get Code" panel for your
-      flow will give you the exact <script> / CDN version to paste into
-      the <head> — versions change, so copy that snippet directly rather
-      than trusting a hardcoded version number here.
    ----------------------------------------------------------------------- */
 
-const DESCOPE_PROJECT_ID = "YOUR_DESCOPE_PROJECT_ID"; // <-- replace me
-const FREELANCER_FLOW_ID = "sign-up-or-in";            // <-- your freelancer flow id
-const COMPANY_FLOW_ID = "company-admin-login";          // <-- your company/admin flow id
+const DESCOPE_PROJECT_ID = "P3HZlcn7sECUmwT4OWWOSR72I2fa";
+const FREELANCER_FLOW_ID = "freelancer-sign-up-or-in";       // magic link + social, no MFA
+const COMPANY_FLOW_ID = "company-admin-sign-up-or-in";       // magic link/social + OTP MFA
+const WITHDRAW_STEP_UP_FLOW_ID = "freelancer-withdraw-step-up"; // OTP step-up before withdrawal
 
 /* ------------------------------- session -------------------------------- */
 
