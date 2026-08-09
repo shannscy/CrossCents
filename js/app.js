@@ -190,7 +190,12 @@ function mountDescopeFlow({ flowId, onComplete }) {
 
     wc.addEventListener("error", (err) => {
       console.error("Descope flow error", err);
-      showToast("Something went wrong with the sign-in flow — check the console.");
+      const isStepUp = flowId === WITHDRAW_STEP_UP_FLOW_ID || flowId === BANK_LINK_STEP_UP_FLOW_ID;
+      if (isStepUp) {
+        showToast("Step-up verification needs a real signed-in session. If you used “Continue without signing in,” sign out and sign in for real first.");
+      } else {
+        showToast("Something went wrong with the sign-in flow — check the console.");
+      }
     });
   } else {
     // No live Descope project wired up yet — show a placeholder + bypass.
