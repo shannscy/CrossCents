@@ -99,9 +99,9 @@
       </div>
       <div class="field">
         <label>IBAN / account number</label>
-        <div id="flow-mount" style="display:none;"></div>
         <input type="text" placeholder="•••• •••• •••• 4821" />
       </div>
+      <div id="flow-mount" style="display:none;"></div>
       <div class="modal-actions">
         <button class="btn btn-outline" onclick="closeModal('bank-modal')">Cancel</button>
         <button class="btn btn-primary" onclick="linkBank()">Save & verify</button>
@@ -139,18 +139,17 @@
       showToast(`Withdrawal of $${amount} verified and initiated.`);
     }
 
-// After — hides the form, shows Descope's real prompt, waits for it
-function linkBank() {
-  document.querySelectorAll("#bank-modal .field").forEach(el => el.style.display = "none");
-  document.getElementById("flow-mount").style.display = "block";
-  mountDescopeFlow({
-    flowId: BANK_LINK_STEP_UP_FLOW_ID,
-    onComplete: () => {
-      closeModal("bank-modal");
-      showToast("Bank account linked and verified.");
-    },
-  });
-}
+    function linkBank() {
+      document.querySelectorAll("#bank-modal .field").forEach(el => el.style.display = "none");
+      document.getElementById("flow-mount").style.display = "block";
+      mountDescopeFlow({
+        flowId: BANK_LINK_STEP_UP_FLOW_ID,
+        onComplete: () => {
+          closeModal("bank-modal");
+          showToast("Bank account linked and verified.");
+        },
+      });
+    }
   </script>
 </body>
 </html>
