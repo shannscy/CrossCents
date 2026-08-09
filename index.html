@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CrossCents — Work across borders, get paid without the wait</title>
-  <meta name="description" content="CrossCents is a marketplace where companies hire freelance talent for one-off and short-term roles, and freelancers find their next role anytime, anywhere, across borders — with payment built into every contract." />
+  <title>CrossCents — Borderless work. Borderless pay.</title>
+  <meta name="description" content="CrossCents is a marketplace for one-off and short-term work: companies post jobs, freelancers build a profile and apply — and find their next role anytime, anywhere, across borders. Payment happens right on the platform." />
   <meta name="theme-color" content="#0f172a" />
-  <meta property="og:title" content="CrossCents — Work across borders, get paid without the wait" />
-  <meta property="og:description" content="Companies post jobs, freelancers build a profile and apply, and payment happens on-platform once a contract is signed." />
+  <meta property="og:title" content="CrossCents — Borderless work. Borderless pay." />
+  <meta property="og:description" content="Companies post jobs, freelancers build a profile and apply, and payment happens right on the platform." />
   <meta property="og:type" content="website" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="stylesheet" href="css/styles.css" />
@@ -17,9 +17,9 @@
   <nav class="nav">
     <div class="logo"><span class="logo-text"><span class="logo-c">C</span>ross<span class="logo-c">C</span>ents</span></div>
     <div class="nav-links">
-      <a href="#how-it-works">How it works</a>
-      <a href="#categories">For freelancers</a>
-      <a href="#categories">For companies</a>
+      <a href="products.html">Our Products</a>
+      <a href="#for-freelancers">For freelancers</a>
+      <a href="#for-companies">For companies</a>
       <a href="about.html">About us</a>
       <a href="chat.html">Chat with us</a>
     </div>
@@ -29,65 +29,44 @@
   </nav>
 
   <section class="hero">
-    <div class="category-row" style="margin-bottom:18px;">
-      <span class="category-chip" style="cursor:default;">Anytime</span>
-      <span class="category-chip" style="cursor:default;">Anywhere</span>
-      <span class="category-chip" style="cursor:default;">Across borders</span>
-    </div>
-    <h1>Work across borders, get paid without the wait.</h1>
-    <p>
-      CrossCents is a marketplace for one-off and short-term work: companies post jobs,
-      freelancers build a profile and apply — and find their next role anytime, anywhere,
-      across borders. Payment happens right on the platform once a contract is signed.
-    </p>
-
-    <form class="hero-search" onsubmit="event.preventDefault(); window.location.href = 'freelancer-jobs.html?q=' + encodeURIComponent(this.q.value);">
-      <input name="q" type="text" placeholder="Search jobs — try &quot;Account Executive&quot; or &quot;React&quot;" />
-      <button class="btn btn-primary" type="submit">Search jobs</button>
-    </form>
-
-    <div class="category-row" id="categories">
-      <a class="category-chip" href="freelancer-jobs.html?category=Sales">Sales</a>
-      <a class="category-chip" href="freelancer-jobs.html?category=Tech">Tech</a>
-      <a class="category-chip" href="freelancer-jobs.html?category=Business%20Development">Business Development</a>
-      <a class="category-chip" href="freelancer-jobs.html?category=Marketing">Marketing</a>
-      <a class="category-chip" href="freelancer-jobs.html?category=Design">Design</a>
-      <a class="category-chip" href="freelancer-jobs.html?category=Operations">Operations</a>
-    </div>
-
-    <div class="hero-visual" aria-hidden="true">
-      <div class="hero-visual-scene scene-1">
-        <div class="avatar">KR</div>
-        <div class="scene-text">
-          <div class="scene-title">Katelin applied</div>
-          <div class="scene-sub">Account Executive role at Growthly Labs</div>
-        </div>
+    <div class="hero-bg" aria-hidden="true"></div>
+    <div class="hero-content">
+      <div class="category-row" style="margin-bottom:18px;">
+        <span class="category-chip ghost">Anytime</span>
+        <span class="category-chip ghost">Anywhere</span>
+        <span class="category-chip ghost">Across borders</span>
       </div>
-      <div class="hero-visual-scene scene-2">
-        <div class="avatar">✓</div>
-        <div class="scene-text">
-          <div class="scene-title">Contract signed</div>
-          <div class="scene-sub">Terms agreed — 3 months, $9,000/mo</div>
-        </div>
-      </div>
-      <div class="hero-visual-scene scene-3">
-        <div class="avatar">$</div>
-        <div class="scene-text">
-          <div class="scene-title">Payment received</div>
-          <div class="scene-sub">$9,000.00 landed in her balance</div>
-        </div>
-      </div>
-    </div>
+      <h1>Borderless work. Borderless pay.</h1>
+      <p>
+        CrossCents is a marketplace for one-off and short-term work: companies post jobs,
+        freelancers build a profile and apply — and find their next role anytime, anywhere,
+        across borders. Payment happens right on the platform.
+      </p>
 
-    <div class="hero-actions">
-      <a class="btn btn-primary" href="freelancer-login.html">I'm a freelancer</a>
-      <a class="btn btn-outline" href="company-login.html">I'm a company</a>
+      <form class="hero-search" onsubmit="event.preventDefault(); window.location.href = 'freelancer-jobs.html?q=' + encodeURIComponent(this.q.value);">
+        <input name="q" type="text" placeholder="Search jobs — try &quot;Account Executive&quot; or &quot;React&quot;" />
+        <button class="btn btn-primary" type="submit">Search jobs</button>
+      </form>
+
+      <div class="category-row" id="categories">
+        <a class="category-chip ghost" href="freelancer-jobs.html?category=Sales">Sales</a>
+        <a class="category-chip ghost" href="freelancer-jobs.html?category=Tech">Tech</a>
+        <a class="category-chip ghost" href="freelancer-jobs.html?category=Business%20Development">Business Development</a>
+        <a class="category-chip ghost" href="freelancer-jobs.html?category=Marketing">Marketing</a>
+        <a class="category-chip ghost" href="freelancer-jobs.html?category=Design">Design</a>
+        <a class="category-chip ghost" href="freelancer-jobs.html?category=Operations">Operations</a>
+      </div>
+
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="freelancer-login.html">I'm a freelancer</a>
+        <a class="btn btn-outline" href="company-login.html">I'm a company</a>
+      </div>
     </div>
   </section>
 
-  <div class="page" id="how-it-works" style="padding-top:0;">
+  <div class="page">
     <div class="paths">
-      <div class="path-card freelancer">
+      <div class="path-card freelancer" id="for-freelancers">
         <span class="path-label freelancer">For freelancers</span>
         <h3>Find your next role, anywhere</h3>
         <div class="path-step">
@@ -116,7 +95,7 @@
         </div>
       </div>
 
-      <div class="path-card company">
+      <div class="path-card company" id="for-companies">
         <span class="path-label company">For companies</span>
         <h3>Hire talent for the work in front of you</h3>
         <div class="path-step">

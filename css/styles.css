@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Rethink+Sans:wght@400;500;600;700;800&display=swap');
+
 /* CrossCents — shared styles
    Palette: deep navy for text/headers, emerald for money/CTA, soft neutral background */
 
@@ -14,6 +16,11 @@
   --amber: #d97706;
   --radius: 12px;
   --shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.06);
+
+  /* Brand mark — the two-tone gradient used for the CrossCents logo and primary buttons */
+  --brand-from: #22d3a6;
+  --brand-to: #0ea5d9;
+  --brand-gradient: linear-gradient(135deg, var(--brand-from), var(--brand-to));
 }
 
 * { box-sizing: border-box; }
@@ -39,6 +46,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 .logo {
+  font-family: "Rethink Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   font-weight: 700;
   font-size: 1.25rem;
   letter-spacing: -0.02em;
@@ -48,7 +56,12 @@ a { color: inherit; text-decoration: none; }
   color: inherit;
 }
 
-.logo .logo-c { color: var(--emerald); }
+.logo .logo-c {
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
 
 .nav-links {
   display: flex;
@@ -84,7 +97,7 @@ a { color: inherit; text-decoration: none; }
 .btn:hover { opacity: 0.9; }
 
 .btn-primary {
-  background: var(--emerald);
+  background: var(--brand-gradient);
   color: white;
 }
 
@@ -125,10 +138,38 @@ a { color: inherit; text-decoration: none; }
   padding: 40px 20px;
 }
 
-/* Hero */
+/* Hero — full-bleed dark background with slow ambient motion behind the text */
 .hero {
+  position: relative;
+  overflow: hidden;
+  background: var(--navy);
+  padding: 96px 20px 72px;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: -25%;
+  background:
+    radial-gradient(circle at 22% 28%, rgba(var(--emerald-rgb), 0.38), transparent 45%),
+    radial-gradient(circle at 78% 65%, rgba(var(--emerald-rgb), 0.22), transparent 50%),
+    radial-gradient(circle at 50% 85%, rgba(51, 65, 85, 0.7), transparent 55%);
+  filter: blur(70px);
+  animation: heroDrift 20s ease-in-out infinite alternate;
+}
+
+@keyframes heroDrift {
+  0%   { transform: translate(-3%, -2%) scale(1); }
+  100% { transform: translate(3%, 2%) scale(1.1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-bg { animation: none; }
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
   text-align: center;
-  padding: 72px 20px 40px;
   max-width: 980px;
   margin: 0 auto;
 }
@@ -138,11 +179,12 @@ a { color: inherit; text-decoration: none; }
   letter-spacing: -0.03em;
   margin-bottom: 20px;
   max-width: 100%;
+  color: white;
 }
 
 .hero p {
   font-size: 1.2rem;
-  color: var(--navy-soft);
+  color: rgba(255, 255, 255, 0.72);
   max-width: 640px;
   margin: 0 auto 36px;
 }
@@ -151,7 +193,7 @@ a { color: inherit; text-decoration: none; }
   display: flex;
   gap: 14px;
   justify-content: center;
-  margin-bottom: 36px;
+  margin-top: 8px;
 }
 
 .hero-actions .btn {
@@ -159,7 +201,10 @@ a { color: inherit; text-decoration: none; }
   font-size: 1.05rem;
 }
 
-.hero-actions .btn-outline { border-color: var(--border); }
+.hero .btn-outline {
+  color: white;
+  border-color: rgba(255, 255, 255, 0.35);
+}
 
 /* Hero search bar */
 .hero-search {
@@ -216,64 +261,17 @@ a { color: inherit; text-decoration: none; }
 .category-chip:hover { border-color: var(--emerald); color: var(--emerald-dark); }
 .category-chip.active { background: var(--navy); color: white; border-color: var(--navy); }
 
-/* Hero animated visual */
-.hero-visual {
-  position: relative;
-  max-width: 340px;
-  height: 160px;
-  margin: 8px auto 44px;
+/* Ghost variant — category chips sitting on the dark hero background */
+.category-chip.ghost {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.92);
 }
 
-.hero-visual-scene {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 20px 24px;
-  opacity: 0;
-  animation: heroSceneCycle 9s infinite;
-}
-
-.hero-visual-scene .avatar {
-  flex-shrink: 0;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 0.95rem;
+.category-chip.ghost:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.4);
   color: white;
-}
-
-.hero-visual-scene .scene-text .scene-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 2px; }
-.hero-visual-scene .scene-text .scene-sub { font-size: 0.82rem; color: var(--navy-soft); }
-
-.hero-visual-scene.scene-1 { animation-delay: 0s; }
-.hero-visual-scene.scene-2 { animation-delay: 3s; }
-.hero-visual-scene.scene-3 { animation-delay: 6s; }
-
-.hero-visual-scene.scene-1 .avatar { background: var(--navy-soft); }
-.hero-visual-scene.scene-2 .avatar { background: var(--amber); }
-.hero-visual-scene.scene-3 .avatar { background: var(--emerald-dark); }
-
-@keyframes heroSceneCycle {
-  0%   { opacity: 0; transform: translateY(10px); }
-  4%   { opacity: 1; transform: translateY(0); }
-  30%  { opacity: 1; transform: translateY(0); }
-  34%  { opacity: 0; transform: translateY(-10px); }
-  100% { opacity: 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-visual-scene { animation: none; opacity: 0; }
-  .hero-visual-scene.scene-1 { opacity: 1; }
 }
 
 /* How it works — two paths */
@@ -739,6 +737,28 @@ tr:last-child td { border-bottom: none; }
 .experience-item .role { font-weight: 700; font-size: 0.95rem; }
 .experience-item .company-line { font-size: 0.85rem; color: var(--navy-soft); margin-bottom: 4px; }
 .experience-item .desc { font-size: 0.88rem; color: var(--navy-soft); }
+
+/* Product grid (products.html) */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.product-grid .profile-section { margin-bottom: 0; }
+
+.product-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(var(--emerald-rgb), 0.12);
+  color: var(--emerald-dark);
+  margin-bottom: 12px;
+}
 
 .skill-tag-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .skill-tag {
