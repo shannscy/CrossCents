@@ -34,25 +34,11 @@
       <div class="flow-mount" id="flow-mount">
         <div class="placeholder-copy">Loading sign-in…</div>
       </div>
-
-      <div class="flow-divider">or, while sign-in isn't connected yet</div>
-      <div class="field">
-        <label for="skip-name-input">Skip sign-in for testing</label>
-        <input id="skip-name-input" type="text" placeholder="Your name" value="Katelin Rivera" />
-      </div>
-      <button class="btn btn-outline btn-block" onclick="skipSignIn('Katelin Rivera')">
-        Continue without signing in
-      </button>
     </div>
   </div>
 
   <script src="js/app.js"></script>
   <script>
-    document.addEventListener("crosscents:skip-login", (e) => {
-      Session.set("freelancer", e.detail);
-      window.location.href = "freelancer-jobs.html";
-    });
-
     mountDescopeFlow({
       flowId: FREELANCER_FLOW_ID,
       onComplete: (name) => {

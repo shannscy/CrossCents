@@ -209,9 +209,18 @@ a { color: inherit; text-decoration: none; }
 .hero-scene .scene-title { font-weight: 700; font-size: 0.82rem; color: rgba(255, 255, 255, 0.92); margin-bottom: 1px; }
 .hero-scene .scene-sub { font-size: 0.72rem; color: rgba(255, 255, 255, 0.55); }
 
-.hero-scene.scene-1 { top: 14%; left: 5%; animation-delay: 0s; }
-.hero-scene.scene-2 { top: 62%; right: 6%; animation-delay: 5s; }
-.hero-scene.scene-3 { bottom: 10%; left: 8%; animation-delay: 10s; }
+/* Two continuous tracks — one story cycling on the left, another on the
+   right, so there's always exactly one card visible per side. */
+.hero-scene.left-1, .hero-scene.left-2, .hero-scene.left-3 { top: 42%; left: 4%; }
+.hero-scene.right-1, .hero-scene.right-2, .hero-scene.right-3 { top: 42%; right: 4%; }
+
+.hero-scene.left-1 { animation-delay: 0s; }
+.hero-scene.left-2 { animation-delay: 5s; }
+.hero-scene.left-3 { animation-delay: 10s; }
+
+.hero-scene.right-1 { animation-delay: 2s; }
+.hero-scene.right-2 { animation-delay: 7s; }
+.hero-scene.right-3 { animation-delay: 12s; }
 
 @keyframes heroSceneDrift {
   0%   { opacity: 0; transform: translateY(14px) scale(0.96); }
@@ -335,6 +344,17 @@ a { color: inherit; text-decoration: none; }
   background: rgba(255, 255, 255, 0.16);
   border-color: rgba(255, 255, 255, 0.4);
   color: white;
+}
+
+/* Static chips — informational only, not clickable, so no pointer/hover affordance */
+.category-chip.static {
+  cursor: default;
+}
+
+.category-chip.static:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.92);
 }
 
 /* How it works — two paths */
@@ -778,6 +798,14 @@ tr:last-child td { border-bottom: none; }
   justify-content: center;
   font-weight: 700;
   font-size: 1.8rem;
+  overflow: hidden;
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .profile-header h2 { margin: 0 0 4px; font-size: 1.5rem; }

@@ -8,15 +8,16 @@ auth surfaces, and the sign-in flows everything else gets built around.
 
 ## Current state
 
-- **Built:** the login pages (`freelancer-login.html`, `company-login.html`)
-  are wired to embed Descope's Web Component. Once you set your Project ID
-  and Flow IDs, clicking "sign in" launches your real Descope flow.
+- **Built and live:** the login pages (`freelancer-login.html`,
+  `company-login.html`) are wired to real Descope flows — magic link/social
+  for freelancers, mandatory TOTP authenticator-app MFA for company admins.
+  The withdraw and link-bank step-up flows are real too: they check for a
+  verified phone, walk a first-time user through adding and verifying one
+  via SMS, then confirm again via their existing verified email before
+  releasing anything — all tested end to end.
 - **Not yet built:** job listings, talent profiles, balances, transactions,
-  and the "send payment" / "withdraw" / "post a job" actions currently run
-  on sample data in `js/app.js` — there's no backend or ledger behind them
-  yet. Those screens exist to give the auth moments (login, step-up
-  verification) a real context to sit in while the rest of the product
-  gets built out.
+  and the "send payment" / "post a job" actions currently run on sample
+  data in `js/app.js` — there's no backend or ledger behind them yet.
 
 ## File structure
 
@@ -41,13 +42,13 @@ js/app.js                    sample data (jobs, profiles), session handling, Des
 
 These are static files — no build step. Two ways to view:
 
-1. **Quick look, no Descope wired up yet:** just double-click `index.html`
-   to open it in a browser. Everything works except the two login pages,
-   which will show a "Descope flow not connected yet" placeholder with a
-   **Continue without signing in** button so you can still click through
-   the rest of the app.
+1. **Quick look:** double-click `index.html` to browse the marketplace,
+   About/Contact/Chat pages, etc. The two login pages need a real `http://`
+   origin to run the Descope Web Component (see below), so opened as a
+   `file://` path they'll just show a "Descope flow not connected yet"
+   placeholder.
 
-2. **Once you wire up Descope:** serve the folder over `http://` rather
+2. **To actually sign in:** serve the folder over `http://` rather
    than opening it as a `file://` path — the Descope Web Component and any
    OAuth/redirect-based steps in your flow generally need a real origin.
    From inside the `crosscents` folder:

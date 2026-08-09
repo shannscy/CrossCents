@@ -209,10 +209,3 @@ function mountDescopeFlow({ flowId, onComplete, mountId = "flow-mount" }) {
     `;
   }
 }
-
-function skipSignIn(name) {
-  document.getElementById("skip-name")?.blur();
-  const input = document.getElementById("skip-name-input");
-  const finalName = (input && input.value.trim()) || name;
-  document.dispatchEvent(new CustomEvent("crosscents:skip-login", { detail: finalName }));
-}
