@@ -1,8 +1,8 @@
 # CrossCents
 
 CrossCents is a marketplace for one-off and short-term work. Companies post
-jobs; freelancers build a profile — LinkedIn-style, no rates to market — and
-apply. Payment runs through the platform itself once a contract is signed,
+jobs; freelancers build a profile — skills and experience, no rates to
+market — and apply. Payment runs through the platform itself once a contract is signed,
 across borders, without the wait. This repo is the front-end: the UI, the
 auth surfaces, and the sign-in flows everything else gets built around.
 
@@ -27,7 +27,7 @@ contact.html                 contact form (business email / phone)
 chat.html                     mocked chat-with-us widget
 freelancer-login.html        Descope flow embed — freelancer sign-up/in
 freelancer-jobs.html         job marketplace — search, category filter, apply + sign contract
-freelancer-profile.html      Katelin Rivera's LinkedIn-style profile
+freelancer-profile.html      Katelin Rivera's profile — skills, experience, bio
 freelancer-dashboard.html    balance, transactions, withdraw (step-up), link bank (step-up)
 company-login.html           Descope flow embed — company admin sign-in (MFA)
 company-talent.html          browse/search freelancer profiles
