@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+import httpx
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -25,3 +26,11 @@ app.add_middleware(
 
 app.include_router(verification.router)
 app.include_router(bank.router)
+
+
+@app.get("/debug/egress-ip")
+async def egress_ip() -> dict:
+    """TEMPORARY — reports this deployment's outbound IP so it can be allowlisted in 8x8 Connect."""
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        response = await client.get("https://api.ipify.org?format=json")
+    return response.json()
