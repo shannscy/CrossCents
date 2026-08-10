@@ -44,7 +44,7 @@ def _get_credentials() -> tuple[str, str]:
 def _map_error(status_code: int) -> HTTPException:
     if status_code == 400:
         return HTTPException(status_code=400, detail="Verification provider rejected the request")
-    if status_code == 401:
+    if status_code in (401, 403):
         return HTTPException(status_code=500, detail="Verification provider authentication failed")
     if status_code == 404:
         return HTTPException(status_code=404, detail="Verification session not found")
@@ -79,11 +79,11 @@ async def start_verification(payload: StartVerificationRequest) -> StartVerifica
         raise HTTPException(status_code=502, detail="Unable to reach verification provider")
 
     if response.status_code != 200:
-        raise HTTPException(status_code=502, detail=f"TEMP DEBUG status={response.status_code} body={response.text[:500]}")
+        raise _map_error(response.status_code)
 
     session_id = response.json().get("sessionId")
     if not session_id:
-        raise HTTPException(status_code=502, detail=f"TEMP DEBUG missing sessionId body={response.text[:500]}")
+        raise HTTPException(status_code=502, detail="Unexpected response from verification provider")
 
     return StartVerificationResponse(verification_id=session_id)
 
