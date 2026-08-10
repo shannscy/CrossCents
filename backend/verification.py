@@ -79,11 +79,11 @@ async def start_verification(payload: StartVerificationRequest) -> StartVerifica
         raise HTTPException(status_code=502, detail="Unable to reach verification provider")
 
     if response.status_code != 200:
-        raise _map_error(response.status_code)
+        raise HTTPException(status_code=502, detail=f"TEMP DEBUG status={response.status_code} body={response.text[:500]}")
 
     session_id = response.json().get("sessionId")
     if not session_id:
-        raise HTTPException(status_code=502, detail="Unexpected response from verification provider")
+        raise HTTPException(status_code=502, detail=f"TEMP DEBUG missing sessionId body={response.text[:500]}")
 
     return StartVerificationResponse(verification_id=session_id)
 
