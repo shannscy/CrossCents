@@ -7,7 +7,7 @@
 
 const DESCOPE_PROJECT_ID = "P3HZlcn7sECUmwT4OWWOSR72I2fa";
 const FREELANCER_FLOW_ID = "freelancer-sign-up-or-in";       // magic link + social, no MFA
-const COMPANY_FLOW_ID = "company-admin-sign-up-or-in";       // magic link/social + OTP MFA
+const COMPANY_FLOW_ID = "company-admin-sign-up-or-in";       // magic link/social, verified email only + mandatory TOTP MFA
 const BANK_LINK_STEP_UP_FLOW_ID = "freelancer-link-bank-step-up";
 const WITHDRAW_STEP_UP_FLOW_ID = "freelancer-withdraw-step-up"; // OTP step-up before withdrawal
 
