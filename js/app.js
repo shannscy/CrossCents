@@ -14,9 +14,10 @@ const COMPANY_FLOW_ID = "company-admin-sign-up-or-in";       // magic link/socia
 const BANK_LINK_STEP_UP_FLOW_ID = "freelancer-link-bank-step-up";
 const WITHDRAW_STEP_UP_FLOW_ID = "freelancer-withdraw-step-up"; // OTP step-up before withdrawal
 
-// Change this if the backend isn't running on localhost:8000 (e.g. pointed
-// at the deployed Render URL instead).
-const API_BASE_URL = "http://localhost:8000";
+// Points at the deployed Render backend so the live GitHub Pages site works.
+// Change to "http://localhost:8000" if you're running the backend locally
+// instead (and serving this frontend locally too — see backend/README.md).
+const API_BASE_URL = "https://crosscents-backend.onrender.com";
 
 /* --------------------------- session token ------------------------------
    sessionStorage here holds only a bearer token (and a display-only name
@@ -104,23 +105,27 @@ const Session = {
     try {
       return await api("/me");
     } catch (err) {
+      console.error("Session.currentOrNull(): /me failed —", err.status, err.message);
       return null;
     }
   },
 
   async requireRole(role, redirectTo) {
     if (!SessionToken.get()) {
+      console.warn("Session.requireRole(): no token in sessionStorage, redirecting to", redirectTo);
       window.location.href = redirectTo;
       return null;
     }
     try {
       const me = await api("/me");
       if (me.role !== role) {
+        console.warn(`Session.requireRole(): backend says role="${me.role}", page wants "${role}" — redirecting`);
         window.location.href = redirectTo;
         return null;
       }
       return me;
     } catch (err) {
+      console.error("Session.requireRole(): /me failed —", err.status, err.message, "— redirecting to", redirectTo);
       window.location.href = redirectTo;
       return null;
     }

@@ -43,9 +43,9 @@
         // call fails, the dashboard's own requireRole() check will still
         // catch it (and bounce back here), so we don't hard-block on it.
         try {
-          await api("/session/bootstrap");
+          await api("/session/bootstrap", { method: "POST" });
         } catch (err) {
-          console.error("Session bootstrap failed", err);
+          console.error("Session bootstrap failed —", err.status, err.message);
         }
         window.location.href = "company-dashboard.html";
       },

@@ -45,9 +45,9 @@
         // See company-login.html for why this calls the backend instead of
         // just setting a role locally.
         try {
-          await api("/session/bootstrap");
+          await api("/session/bootstrap", { method: "POST" });
         } catch (err) {
-          console.error("Session bootstrap failed", err);
+          console.error("Session bootstrap failed —", err.status, err.message);
         }
         window.location.href = "freelancer-jobs.html";
       },
