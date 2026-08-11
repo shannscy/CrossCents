@@ -44,7 +44,7 @@
 
     <div class="action-row">
       <button class="btn btn-primary" onclick="document.getElementById('withdraw-amount-error').style.display='none'; document.getElementById('withdraw-amount').value=''; openModal('withdraw-modal')">Withdraw funds</button>
-      <button class="btn btn-outline" onclick="openModal('bank-modal')">Link bank account</button>
+      <button class="btn btn-outline" onclick="resetBankModal(); openModal('bank-modal')">Link bank account</button>
     </div>
 
     <div class="section-title">Recent payments</div>
@@ -105,7 +105,7 @@
         <input type="text" id="bank-account-number" placeholder="•••• •••• •••• 4821" />
       </div>
       <div id="flow-mount" style="display:none;"></div>
-      <div class="modal-actions">
+      <div class="modal-actions" id="bank-modal-actions">
         <button class="btn btn-outline" onclick="closeModal('bank-modal')">Cancel</button>
         <button class="btn btn-primary" onclick="linkBank()">Save & verify</button>
       </div>
@@ -228,6 +228,13 @@
       });
     }
 
+    function resetBankModal() {
+      document.querySelectorAll("#bank-modal .field").forEach(el => el.style.display = "block");
+      document.getElementById("bank-modal-actions").style.display = "flex";
+      document.getElementById("flow-mount").style.display = "none";
+      document.getElementById("flow-mount").innerHTML = "";
+    }
+
     function linkBank() {
       const holder = document.getElementById("bank-account-holder").value.trim();
       const number = document.getElementById("bank-account-number").value.trim();
@@ -236,6 +243,7 @@
         return;
       }
       document.querySelectorAll("#bank-modal .field").forEach(el => el.style.display = "none");
+      document.getElementById("bank-modal-actions").style.display = "none";
       document.getElementById("flow-mount").style.display = "block";
       mountDescopeFlow({
         flowId: BANK_LINK_STEP_UP_FLOW_ID,
@@ -251,6 +259,7 @@
             showToast(err.message || "Could not link bank account.");
           } finally {
             document.querySelectorAll("#bank-modal .field").forEach(el => el.style.display = "block");
+            document.getElementById("bank-modal-actions").style.display = "flex";
             document.getElementById("flow-mount").style.display = "none";
           }
         },
