@@ -30,20 +30,20 @@
     <div class="stat-row">
       <div class="stat-tile">
         <div class="label">Available balance</div>
-        <div class="value emerald" id="available-balance-display">$2,480.00</div>
+        <div class="value emerald" id="available-balance-display">—</div>
       </div>
       <div class="stat-tile">
-        <div class="label">Pending</div>
-        <div class="value">$430.00</div>
+        <div class="label">Bank account</div>
+        <div class="value" id="bank-status-display" style="font-size:1.1rem;">—</div>
       </div>
       <div class="stat-tile">
-        <div class="label">Lifetime earned</div>
-        <div class="value">$18,240.00</div>
+        <div class="label">Payments received</div>
+        <div class="value" id="received-count-display">—</div>
       </div>
     </div>
 
     <div class="action-row">
-      <button class="btn btn-primary" onclick="document.getElementById('withdraw-amount-error').style.display='none'; openModal('withdraw-modal')">Withdraw funds</button>
+      <button class="btn btn-primary" onclick="document.getElementById('withdraw-amount-error').style.display='none'; document.getElementById('withdraw-amount').value=''; openModal('withdraw-modal')">Withdraw funds</button>
       <button class="btn btn-outline" onclick="openModal('bank-modal')">Link bank account</button>
     </div>
 
@@ -51,17 +51,23 @@
     <div class="card-table">
       <table>
         <thead>
-          <tr><th>Company</th><th>Amount</th><th>Date</th><th>Status</th></tr>
+          <tr><th>From / To</th><th>Type</th><th>Amount</th><th>Date</th><th>Status</th></tr>
         </thead>
         <tbody id="tx-body"></tbody>
       </table>
     </div>
+
+    <div class="section-title">Audit log</div>
+    <div class="card-table">
+      <div class="audit-list" id="audit-body"></div>
+    </div>
   </div>
 
   <!-- Withdraw modal — this is the step-up verification moment.
-       Verif8 (8x8 CPaaS) will send the SMS one-time code here, confirmed
-       before releasing funds. See README for two ways to wire that up
-       with Descope. -->
+       Verif8 (8x8 CPaaS) sends the SMS one-time code here, confirmed by the
+       EXISTING Descope freelancer-withdraw-step-up flow before we ever call
+       the backend. This flow is unchanged — only what happens after it
+       succeeds (a real backend call instead of a client-side toast) is new. -->
   <div class="modal-overlay" id="withdraw-modal">
     <div class="modal">
       <h3>Withdraw funds</h3>
@@ -70,7 +76,7 @@
       <div id="withdraw-step-amount">
         <div class="field">
           <label>Amount</label>
-          <input type="number" id="withdraw-amount" placeholder="0.00" value="500" />
+          <input type="number" id="withdraw-amount" placeholder="0.00" />
           <div class="field-error" id="withdraw-amount-error" style="display:none;"></div>
         </div>
         <div class="modal-actions">
@@ -80,7 +86,7 @@
       </div>
 
       <div id="withdraw-step-otp" style="display:none;">
-        <div class="otp-note">For your security, we'll verify it's really you before releasing funds.</div>
+        <div class="otp-note" id="withdraw-otp-note">For your security, we'll verify it's really you before releasing funds.</div>
         <div id="withdraw-flow-mount"></div>
       </div>
     </div>
@@ -96,7 +102,7 @@
       </div>
       <div class="field">
         <label>IBAN / account number</label>
-        <input type="text" placeholder="•••• •••• •••• 4821" />
+        <input type="text" id="bank-account-number" placeholder="•••• •••• •••• 4821" />
       </div>
       <div id="flow-mount" style="display:none;"></div>
       <div class="modal-actions">
@@ -108,26 +114,71 @@
 
   <script src="js/app.js"></script>
   <script>
-    const session = Session.requireRole("freelancer", "freelancer-login.html");
-    if (session) {
-      document.getElementById("who-name").textContent = session.name;
-      document.getElementById("bank-account-holder").value = session.name;
+    let AVAILABLE_BALANCE = 0;
+
+    function renderTransactions(txs) {
+      const txBody = document.getElementById("tx-body");
+      txBody.innerHTML = "";
+      if (txs.length === 0) {
+        const row = document.createElement("tr");
+        const cell = el("td", { colspan: "5", text: "No payments yet." });
+        cell.style.color = "var(--navy-soft)";
+        row.appendChild(cell);
+        txBody.appendChild(row);
+        return;
+      }
+      txs.forEach((tx) => {
+        const label = tx.type === "withdrawal" ? "Withdrawal" : "Payment received";
+        const party = tx.type === "withdrawal" ? tx.recipient : tx.sender;
+        const row = el("tr", {}, [
+          el("td", { text: party }),
+          el("td", { text: label }),
+          el("td", { text: formatCurrency(tx.amount, tx.currency) }),
+          el("td", { text: formatDate(tx.created_at) }),
+          el("td", {}, [el("span", { className: "status-pill " + tx.status.replace("completed", "complete"), text: tx.status[0].toUpperCase() + tx.status.slice(1) })]),
+        ]);
+        txBody.appendChild(row);
+      });
     }
 
-    const AVAILABLE_BALANCE = 2480.00;
-    document.getElementById("available-balance-display").textContent = formatCurrency(AVAILABLE_BALANCE);
+    function renderAuditLog(entries) {
+      const body = document.getElementById("audit-body");
+      body.innerHTML = "";
+      if (entries.length === 0) {
+        body.appendChild(el("div", { className: "audit-empty", text: "No activity yet." }));
+        return;
+      }
+      entries.forEach((entry) => {
+        const item = el("div", { className: "audit-item" }, [
+          el("div", { className: "audit-time", text: formatDateTime(entry.created_at) }),
+          el("div", { className: "audit-event", text: entry.event }),
+        ]);
+        if (entry.detail) item.appendChild(el("div", { className: "audit-detail", text: entry.detail }));
+        body.appendChild(item);
+      });
+    }
 
-    const txBody = document.getElementById("tx-body");
-    SAMPLE_TRANSACTIONS.forEach((tx) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${tx.company}</td>
-        <td>${formatCurrency(tx.amount)}</td>
-        <td>${tx.date}</td>
-        <td><span class="status-pill ${tx.status}">${tx.status === "complete" ? "Complete" : "Pending"}</span></td>
-      `;
-      txBody.appendChild(row);
-    });
+    async function refreshAccountState() {
+      const [txData, auditData] = await Promise.all([api("/transactions"), api("/audit-log")]);
+      renderTransactions(txData.transactions);
+      renderAuditLog(auditData.entries);
+      document.getElementById("received-count-display").textContent =
+        txData.transactions.filter((t) => t.type === "company_payment").length;
+    }
+
+    (async () => {
+      const session = await Session.requireRole("freelancer", "freelancer-login.html");
+      if (!session) return;
+
+      document.getElementById("who-name").textContent = SessionToken.getDisplayName() || "—";
+      document.getElementById("bank-account-holder").value = SessionToken.getDisplayName() || "";
+
+      AVAILABLE_BALANCE = session.available_balance;
+      document.getElementById("available-balance-display").textContent = formatCurrency(AVAILABLE_BALANCE);
+      document.getElementById("bank-status-display").textContent = session.has_linked_bank ? "Linked" : "Not linked";
+
+      await refreshAccountState();
+    })();
 
     function showWithdrawOtp() {
       const amountInput = document.getElementById("withdraw-amount");
@@ -146,29 +197,62 @@
       }
       errorEl.style.display = "none";
 
+      document.getElementById("withdraw-otp-note").textContent =
+        `Withdrawing ${formatCurrency(amount)} — for your security, we'll verify it's really you before releasing funds.`;
+
       document.getElementById("withdraw-step-amount").style.display = "none";
       document.getElementById("withdraw-step-otp").style.display = "block";
       mountDescopeFlow({
         flowId: WITHDRAW_STEP_UP_FLOW_ID,
         mountId: "withdraw-flow-mount",
-        onComplete: () => {
-          const amount = document.getElementById("withdraw-amount").value || "0.00";
-          closeModal("withdraw-modal");
-          document.getElementById("withdraw-step-amount").style.display = "block";
-          document.getElementById("withdraw-step-otp").style.display = "none";
-          showToast(`Withdrawal of $${amount} verified and initiated.`);
+        onComplete: async () => {
+          // Step-up (Descope + Verif8) already succeeded at this point — this
+          // call is the backend actually recording the withdrawal, after it
+          // independently re-validates the session, the role, and the amount.
+          try {
+            const result = await api("/withdrawal", { method: "POST", body: { amount } });
+            AVAILABLE_BALANCE = result.available_balance;
+            document.getElementById("available-balance-display").textContent = formatCurrency(AVAILABLE_BALANCE);
+            closeModal("withdraw-modal");
+            document.getElementById("withdraw-step-amount").style.display = "block";
+            document.getElementById("withdraw-step-otp").style.display = "none";
+            showToast(`Withdrawal of ${formatCurrency(amount)} verified and submitted.`);
+            await refreshAccountState();
+          } catch (err) {
+            closeModal("withdraw-modal");
+            document.getElementById("withdraw-step-amount").style.display = "block";
+            document.getElementById("withdraw-step-otp").style.display = "none";
+            showToast(err.message || "Withdrawal could not be completed.");
+          }
         },
       });
     }
 
     function linkBank() {
+      const holder = document.getElementById("bank-account-holder").value.trim();
+      const number = document.getElementById("bank-account-number").value.trim();
+      if (!holder || !number) {
+        showToast("Enter an account holder name and account number.");
+        return;
+      }
       document.querySelectorAll("#bank-modal .field").forEach(el => el.style.display = "none");
       document.getElementById("flow-mount").style.display = "block";
       mountDescopeFlow({
         flowId: BANK_LINK_STEP_UP_FLOW_ID,
-        onComplete: () => {
-          closeModal("bank-modal");
-          showToast("Bank account linked and verified.");
+        onComplete: async () => {
+          try {
+            await api("/bank/link", { method: "POST", body: { account_holder: holder, account_number: number } });
+            closeModal("bank-modal");
+            document.getElementById("bank-status-display").textContent = "Linked";
+            showToast("Bank account linked and verified.");
+            await refreshAccountState();
+          } catch (err) {
+            closeModal("bank-modal");
+            showToast(err.message || "Could not link bank account.");
+          } finally {
+            document.querySelectorAll("#bank-modal .field").forEach(el => el.style.display = "block");
+            document.getElementById("flow-mount").style.display = "none";
+          }
         },
       });
     }

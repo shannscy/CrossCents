@@ -74,13 +74,7 @@
 
   <script src="js/app.js"></script>
   <script>
-    const session = Session.requireRole("company", "company-login.html");
     let companyName = "Xentir Pte Ltd";
-    if (session) {
-      document.getElementById("who-name").textContent = session.name;
-      companyName = session.org || "Xentir Pte Ltd";
-      document.getElementById("who-org").textContent = companyName;
-    }
 
     const categorySelect = document.getElementById("job-category");
     JOB_CATEGORIES.forEach((cat) => {
@@ -146,6 +140,17 @@
     }
 
     renderPostedJobs();
+
+    (async () => {
+      const session = await Session.requireRole("company_admin", "company-login.html");
+      if (session) {
+        document.getElementById("who-name").textContent = SessionToken.getDisplayName() || "—";
+        companyName = session.organisation || companyName;
+        document.getElementById("who-org").textContent = companyName;
+        postedJobs = SAMPLE_JOBS.filter((j) => j.company === companyName);
+        renderPostedJobs();
+      }
+    })();
   </script>
 </body>
 </html>

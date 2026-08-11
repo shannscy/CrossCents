@@ -2,6 +2,7 @@
 
 # Python backend
 backend/.env
+backend/crosscents.db
 __pycache__/
 *.pyc
 .venv/

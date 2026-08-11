@@ -33,8 +33,8 @@
         <div class="value">4</div>
       </div>
       <div class="stat-tile">
-        <div class="label">Paid this month</div>
-        <div class="value emerald">$4,580.00</div>
+        <div class="label">Budget remaining</div>
+        <div class="value emerald" id="budget-display">—</div>
       </div>
       <div class="stat-tile">
         <div class="label">Your role</div>
@@ -46,67 +46,222 @@
     <div class="card-table">
       <table>
         <thead>
-          <tr><th>Name</th><th>Country</th><th>Last paid</th><th>Status</th><th></th></tr>
+          <tr><th>Name</th><th>Country</th><th>Status</th><th></th></tr>
         </thead>
         <tbody id="freelancer-body"></tbody>
       </table>
     </div>
+
+    <div class="section-title">Payment history</div>
+    <div class="card-table">
+      <table>
+        <thead>
+          <tr><th>Recipient</th><th>Amount</th><th>Memo</th><th>Date</th><th>Status</th></tr>
+        </thead>
+        <tbody id="tx-body"></tbody>
+      </table>
+    </div>
+
+    <div class="section-title">Audit log</div>
+    <div class="card-table">
+      <div class="audit-list" id="audit-body"></div>
+    </div>
   </div>
 
+  <!-- No Verif8 / Descope step-up here — company payments are validated and
+       gated by the FastAPI backend (auth + role + budget), not a second
+       verification flow, per the current prototype scope. -->
   <div class="modal-overlay" id="pay-modal">
     <div class="modal">
       <h3>Send payment</h3>
       <div class="modal-sub" id="pay-target">To —</div>
-      <div class="field">
-        <label>Amount</label>
-        <input type="number" id="pay-amount" placeholder="0.00" value="500" />
+
+      <div id="pay-step-details">
+        <div class="field">
+          <label>Amount</label>
+          <input type="number" id="pay-amount" placeholder="0.00" />
+        </div>
+        <div class="field">
+          <label>Currency</label>
+          <select id="pay-currency">
+            <option value="USD">USD</option>
+            <option value="SGD">SGD</option>
+            <option value="EUR">EUR</option>
+            <option value="GBP">GBP</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Memo (optional)</label>
+          <input type="text" id="pay-memo" placeholder="Invoice #, project name…" />
+        </div>
+        <div class="field-error" id="pay-amount-error" style="display:none;"></div>
+        <div class="modal-actions">
+          <button class="btn btn-outline" onclick="closeModal('pay-modal')">Cancel</button>
+          <button class="btn btn-primary" onclick="showPayConfirm()">Continue</button>
+        </div>
       </div>
-      <div class="field">
-        <label>Memo (optional)</label>
-        <input type="text" placeholder="Invoice #, project name…" />
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-outline" onclick="closeModal('pay-modal')">Cancel</button>
-        <button class="btn btn-primary" onclick="confirmPay()">Send payment</button>
+
+      <div id="pay-step-confirm" style="display:none;">
+        <div class="review-box" id="pay-review"></div>
+        <div class="modal-actions">
+          <button class="btn btn-outline" onclick="backToPayDetails()">Cancel</button>
+          <button class="btn btn-primary" id="pay-confirm-btn" onclick="confirmPay()">Confirm</button>
+        </div>
       </div>
     </div>
   </div>
 
   <script src="js/app.js"></script>
   <script>
-    const session = Session.requireRole("company", "company-login.html");
-    if (session) {
-      document.getElementById("who-name").textContent = session.name;
-      document.getElementById("who-org").textContent = session.org || "Xentir Pte Ltd";
-    }
-
-    const body = document.getElementById("freelancer-body");
     let payTarget = "";
 
-    SAMPLE_FREELANCERS.forEach((f) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${f.name}</td>
-        <td>${f.country}</td>
-        <td>${f.lastPaid}</td>
-        <td><span class="status-pill ${f.status === "Active" ? "complete" : "pending"}">${f.status}</span></td>
-        <td><button class="btn btn-outline btn-sm" data-name="${f.name}">Send payment</button></td>
-      `;
-      body.appendChild(row);
-    });
+    function renderFreelancers() {
+      const body = document.getElementById("freelancer-body");
+      body.innerHTML = "";
+      SAMPLE_FREELANCERS.forEach((f) => {
+        const btn = el("button", { className: "btn btn-outline btn-sm", text: "Send payment" });
+        btn.addEventListener("click", () => {
+          payTarget = f.name;
+          document.getElementById("pay-target").textContent = "To " + payTarget;
+          document.getElementById("pay-amount").value = "";
+          document.getElementById("pay-memo").value = "";
+          document.getElementById("pay-amount-error").style.display = "none";
+          document.getElementById("pay-step-details").style.display = "block";
+          document.getElementById("pay-step-confirm").style.display = "none";
+          openModal("pay-modal");
+        });
+        const row = el("tr", {}, [
+          el("td", { text: f.name }),
+          el("td", { text: f.country }),
+          el("td", {}, [el("span", { className: "status-pill " + (f.status === "Active" ? "complete" : "pending"), text: f.status })]),
+          el("td", {}, [btn]),
+        ]);
+        body.appendChild(row);
+      });
+    }
 
-    body.addEventListener("click", (e) => {
-      if (e.target.tagName === "BUTTON") {
-        payTarget = e.target.getAttribute("data-name");
-        document.getElementById("pay-target").textContent = "To " + payTarget;
-        openModal("pay-modal");
+    function renderTransactions(txs) {
+      const txBody = document.getElementById("tx-body");
+      txBody.innerHTML = "";
+      if (txs.length === 0) {
+        const row = document.createElement("tr");
+        const cell = el("td", { colspan: "5", text: "No payments sent yet." });
+        cell.style.color = "var(--navy-soft)";
+        row.appendChild(cell);
+        txBody.appendChild(row);
+        return;
       }
-    });
+      txs.forEach((tx) => {
+        const row = el("tr", {}, [
+          el("td", { text: tx.recipient }),
+          el("td", { text: formatCurrency(tx.amount, tx.currency) }),
+          el("td", { text: tx.memo || "—" }),
+          el("td", { text: formatDate(tx.created_at) }),
+          el("td", {}, [el("span", { className: "status-pill " + tx.status.replace("completed", "complete"), text: tx.status[0].toUpperCase() + tx.status.slice(1) })]),
+        ]);
+        txBody.appendChild(row);
+      });
+    }
 
-    function confirmPay() {
-      const amount = document.getElementById("pay-amount").value || "0.00";
-      closeModal("pay-modal");
-      showToast(`Payment of $${amount} sent to ${payTarget}.`);
+    function renderAuditLog(entries) {
+      const body = document.getElementById("audit-body");
+      body.innerHTML = "";
+      if (entries.length === 0) {
+        body.appendChild(el("div", { className: "audit-empty", text: "No activity yet." }));
+        return;
+      }
+      entries.forEach((entry) => {
+        const item = el("div", { className: "audit-item" }, [
+          el("div", { className: "audit-time", text: formatDateTime(entry.created_at) }),
+          el("div", { className: "audit-event", text: entry.event }),
+        ]);
+        if (entry.detail) item.appendChild(el("div", { className: "audit-detail", text: entry.detail }));
+        body.appendChild(item);
+      });
+    }
+
+    let budgetRemaining = 0;
+
+    async function refreshAccountState() {
+      const [txData, auditData] = await Promise.all([api("/transactions"), api("/audit-log")]);
+      renderTransactions(txData.transactions);
+      renderAuditLog(auditData.entries);
+    }
+
+    (async () => {
+      const session = await Session.requireRole("company_admin", "company-login.html");
+      if (!session) return;
+
+      document.getElementById("who-name").textContent = SessionToken.getDisplayName() || "—";
+      document.getElementById("who-org").textContent = session.organisation || "—";
+
+      budgetRemaining = session.budget_remaining;
+      document.getElementById("budget-display").textContent = formatCurrency(budgetRemaining);
+
+      renderFreelancers();
+      await refreshAccountState();
+    })();
+
+    function showPayConfirm() {
+      const amount = parseFloat(document.getElementById("pay-amount").value);
+      const errorEl = document.getElementById("pay-amount-error");
+
+      if (!amount || amount <= 0) {
+        errorEl.textContent = "Enter an amount to send.";
+        errorEl.style.display = "block";
+        return;
+      }
+      if (amount > budgetRemaining) {
+        errorEl.textContent = `Not possible — this exceeds your remaining budget of ${formatCurrency(budgetRemaining)}.`;
+        errorEl.style.display = "block";
+        return;
+      }
+      errorEl.style.display = "none";
+
+      const currency = document.getElementById("pay-currency").value;
+      const memo = document.getElementById("pay-memo").value.trim();
+
+      const review = document.getElementById("pay-review");
+      review.innerHTML = "";
+      review.appendChild(el("div", { text: "Confirm payment", style: "font-weight:700; margin-bottom:8px;" }));
+      review.appendChild(el("div", { text: `Send ${currency} ${amount.toFixed(2)} to ${payTarget}?` }));
+      if (memo) {
+        const row = el("div", { className: "review-row" }, [el("span", { className: "k", text: "Memo" }), el("span", { className: "v", text: memo })]);
+        review.appendChild(row);
+      }
+
+      document.getElementById("pay-step-details").style.display = "none";
+      document.getElementById("pay-step-confirm").style.display = "block";
+    }
+
+    function backToPayDetails() {
+      document.getElementById("pay-step-details").style.display = "block";
+      document.getElementById("pay-step-confirm").style.display = "none";
+    }
+
+    async function confirmPay() {
+      const amount = parseFloat(document.getElementById("pay-amount").value);
+      const currency = document.getElementById("pay-currency").value;
+      const memo = document.getElementById("pay-memo").value.trim();
+      const btn = document.getElementById("pay-confirm-btn");
+      btn.disabled = true;
+
+      try {
+        const result = await api("/company/payment", {
+          method: "POST",
+          body: { recipient_name: payTarget, amount, currency, memo: memo || null },
+        });
+        budgetRemaining = result.budget_remaining;
+        document.getElementById("budget-display").textContent = formatCurrency(budgetRemaining);
+        closeModal("pay-modal");
+        showToast(`Payment of ${currency} ${amount.toFixed(2)} sent to ${payTarget}.`);
+        await refreshAccountState();
+      } catch (err) {
+        closeModal("pay-modal");
+        showToast(err.message || "Payment could not be completed.");
+      } finally {
+        btn.disabled = false;
+      }
     }
   </script>
 </body>

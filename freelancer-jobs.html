@@ -54,13 +54,18 @@
 
   <script src="js/app.js"></script>
   <script>
-    const session = Session.get();
-    if (session && session.role === "freelancer") {
-      document.getElementById("who-row").innerHTML = `
-        Signed in as <strong>${session.name}</strong>
-        <a href="#" class="btn btn-secondary btn-sm" style="margin-left:14px;" onclick="logout('freelancer-login.html'); return false;">Log out</a>
-      `;
-    }
+    (async () => {
+      const session = await Session.currentOrNull();
+      if (session && session.role === "freelancer") {
+        const row = document.getElementById("who-row");
+        row.textContent = "";
+        row.appendChild(document.createTextNode("Signed in as "));
+        row.appendChild(el("strong", { text: SessionToken.getDisplayName() || "—" }));
+        const logoutLink = el("a", { href: "#", class: "btn btn-secondary btn-sm", style: "margin-left:14px;", text: "Log out" });
+        logoutLink.addEventListener("click", (e) => { e.preventDefault(); logout("freelancer-login.html"); });
+        row.appendChild(logoutLink);
+      }
+    })();
 
     const params = new URLSearchParams(window.location.search);
     let activeCategory = params.get("category") || "";
@@ -123,9 +128,9 @@
       });
     }
 
-    document.getElementById("job-list").addEventListener("click", (e) => {
+    document.getElementById("job-list").addEventListener("click", async (e) => {
       if (e.target.tagName !== "BUTTON" || !e.target.dataset.jobId) return;
-      const currentSession = Session.get();
+      const currentSession = await Session.currentOrNull();
       if (!currentSession || currentSession.role !== "freelancer") {
         window.location.href = "freelancer-login.html";
         return;

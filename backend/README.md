@@ -1,12 +1,19 @@
 # CrossCents Backend
 
-A tiny integration layer between the Descope flow and 8x8 Verif8. It is
-**not** an auth service — Descope still owns authentication. 8x8 Verif8
-owns OTP generation and validation; this backend only relays requests to
-it so the `X8_API_KEY` never has to reach the frontend or Descope.
+The trusted backend for CrossCents. Two jobs:
 
-`/bank/link` and `/withdraw` are **mock** endpoints — no real bank or
-money movement is involved.
+1. **Integration layer to 8x8 Verif8** for the existing freelancer step-up
+   flows (withdrawal, bank-link). Descope still owns authentication; Verif8
+   still owns OTP generation and validation. This backend only relays
+   requests to it so `X8_API_KEY` never reaches the frontend or Descope.
+2. **Trusted backend for identity, authorization, and the mock ledger.**
+   The browser is never trusted for role or identity — every financial
+   endpoint independently validates the caller's Descope session JWT
+   (official `descope` Python SDK, `validate_session`) and resolves their
+   role/organisation from a backend-only demo mapping (`demo_users.py`),
+   never from anything the client asserts.
+
+All money movement is **mock** — no real bank, no real payment provider.
 
 ## Install
 
@@ -22,15 +29,16 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Edit `.env` and fill in your real 8x8 token:
-
 ```
-X8_API_KEY=<your 8x8 Verif8 bearer token>
+X8_API_KEY=<your real 8x8 Verif8 bearer token>
 X8_SUBACCOUNT_ID=NA_Verif8
+DESCOPE_PROJECT_ID=P3HZlcn7sECUmwT4OWWOSR72I2fa
 ```
 
-`.env` is gitignored. Never put the real token in `.env.example`, source
-code, or the frontend.
+`DESCOPE_PROJECT_ID` isn't secret (it's already public in `js/app.js`) — it's
+prefilled above. `X8_API_KEY` is secret; `.env` is gitignored, never commit
+it. `crosscents.db` (the sqlite ledger, created on first run) is also
+gitignored — it's local runtime state, not source.
 
 ## Run
 
@@ -40,50 +48,72 @@ uvicorn main:app --reload --port 8000
 
 Docs at `http://localhost:8000/docs`.
 
+## Auth model
+
+Every endpoint below except `/verification/*` requires:
+
+```
+Authorization: Bearer <Descope session JWT>
+```
+
+The frontend gets this JWT directly from the Descope flow's `success` event
+— see `mountDescopeFlow()` in `js/app.js`. The backend validates it via
+Descope's SDK and resolves role/org itself (`auth.py` + `demo_users.py`).
+There is currently exactly one demo company admin, mapped by Descope user ID
+in `demo_users.DEMO_COMPANY_ADMINS`; every other authenticated user is
+treated as a freelancer. Replace that mapping with a real
+Organisation/Membership table when this stops being a demo.
+
 ## Endpoints
 
-### `POST /verification/start`
-Request:
-```json
-{ "phone": "+6591234567" }
-```
-Response:
-```json
-{ "verification_id": "..." }
-```
-Calls 8x8 Verif8's `POST /api/v2/subaccounts/{subAccountId}/sessions` to
-generate and send the OTP, and returns its `sessionId` as
-`verification_id`.
+### `GET /me`
+Returns the caller's resolved identity — `{ user_id, role, organisation,
+available_balance | budget_remaining, has_linked_bank }`. Side-effect free;
+dashboards call this on every page load to re-verify role, not a cached
+value.
 
-### `POST /verification/verify`
-Request:
-```json
-{ "verification_id": "...", "code": "123456" }
-```
-Response:
-```json
-{ "verified": true }
-```
-Calls 8x8 Verif8's `GET /api/v2/subaccounts/{subAccountId}/sessions/{sessionId}?code=...`
-and returns `verified: true` only if 8x8 reports the session `status` as
-`VERIFIED`. This backend does not generate or store OTPs itself.
+### `POST /session/bootstrap`
+Same response as `/me`, plus writes a "User signed in" audit row. Call once,
+right after a Descope flow's `success` event.
 
-### `POST /bank/link` (mock)
+### `POST /verification/start`, `POST /verification/verify`
+Unchanged — see the original Verif8 integration notes below.
+
+### `POST /bank/link` (mock, freelancer only)
 ```json
-{ "user_id": "demo-user", "bank_name": "Demo Bank" }
+{ "account_holder": "Jane Doe", "account_number": "0123456789" }
 ```
 → `{ "status": "linked", "message": "Demo bank account linked successfully" }`
 
-### `POST /withdraw` (mock)
+### `POST /withdrawal` (mock, freelancer only)
 ```json
-{ "user_id": "demo-user", "amount": 100, "currency": "SGD" }
+{ "amount": 200, "currency": "USD" }
 ```
-→ `{ "status": "success", "message": "Demo withdrawal approved" }`
+Only reachable in the frontend after the **existing** Descope/Verif8
+step-up flow succeeds. Validates: amount > 0, supported currency, a bank
+account is linked, amount ≤ current mock balance. Writes a transaction +
+audit rows, returns `{ transaction, available_balance }`.
 
-## How this fits the Descope flow
+### `POST /company/payment` (mock, company_admin only)
+```json
+{ "recipient_name": "Katelin Rivera", "amount": 500, "currency": "USD", "memo": "Invoice #12" }
+```
+No Verif8 / step-up involved (out of scope for now, per current design).
+Validates: recipient is a known demo freelancer, amount > 0, supported
+currency, amount ≤ remaining mock budget. Writes a transaction + audit
+rows, returns `{ transaction, budget_remaining }`.
 
-Descope's Generic HTTP Connector calls this backend directly — no
-Descope SDK is used here:
+### `GET /transactions`
+Returns the caller's own transaction history (freelancer: withdrawals +
+payments received; company admin: payments sent).
+
+### `GET /audit-log`
+Returns the caller's own recent audit events, newest first.
+
+## How Verif8 fits the Descope flow (unchanged)
+
+Descope's Generic HTTP Connector calls this backend directly — no Descope
+SDK is used for that side:
 
 ```
 Descope flow → POST /verification/start → user gets 8x8 SMS
@@ -93,10 +123,24 @@ verified: true → Descope flow continues (step-up / phone-add complete)
 
 ## Manual test (real SMS)
 
-Only after `.env` has a real `X8_API_KEY`:
+Only after `.env` has a real `X8_API_KEY`, and 8x8's account balance/IP
+allowlist are sorted (see project notes — currently blocked on 8x8 support):
 
 ```bash
 curl -X POST http://localhost:8000/verification/start \
   -H "Content-Type: application/json" \
   -d '{"phone": "+6591234567"}'
+```
+
+## Manual test (auth + ledger, no Verif8 needed)
+
+```bash
+# should 401 — no token
+curl -i http://localhost:8000/me
+
+# get a real token: sign in at company-login.html or freelancer-login.html
+# in the browser, then read it from sessionStorage (devtools console):
+#   sessionStorage.getItem("crosscents_session_token")
+
+curl http://localhost:8000/me -H "Authorization: Bearer <paste token>"
 ```

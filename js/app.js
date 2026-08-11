@@ -1,8 +1,11 @@
 /* CrossCents — shared app logic
    -----------------------------------------------------------------------
    The login pages (freelancer-login.html / company-login.html) are wired
-   to the crosscents Descope project. The dashboards currently run on
-   sample data — there's no backend or ledger behind them yet.
+   to the crosscents Descope project. Descope proves WHO signed in; the
+   FastAPI backend (backend/) is the only thing that decides WHAT they're
+   allowed to do — it independently validates the Descope session and
+   resolves the user's role/organisation itself. The browser never gets to
+   assert "I'm a company admin" and have that trusted.
    ----------------------------------------------------------------------- */
 
 const DESCOPE_PROJECT_ID = "P3HZlcn7sECUmwT4OWWOSR72I2fa";
@@ -11,57 +14,143 @@ const COMPANY_FLOW_ID = "company-admin-sign-up-or-in";       // magic link/socia
 const BANK_LINK_STEP_UP_FLOW_ID = "freelancer-link-bank-step-up";
 const WITHDRAW_STEP_UP_FLOW_ID = "freelancer-withdraw-step-up"; // OTP step-up before withdrawal
 
-/* ------------------------------- session -------------------------------- */
+// Change this if the backend isn't running on localhost:8000 (e.g. pointed
+// at the deployed Render URL instead).
+const API_BASE_URL = "http://localhost:8000";
 
-const Session = {
-  set(role, name, org) {
-    localStorage.setItem(
-      "crosscents_session",
-      JSON.stringify({ role, name, org: org || null })
-    );
+/* --------------------------- session token ------------------------------
+   sessionStorage here holds only a bearer token (and a display-only name
+   for greeting text) — never a role. It's a credential to send to the
+   backend, not something the frontend trusts on its own. Every real
+   authorization decision is re-derived by FastAPI on every request via
+   Session.requireRole() below, which calls the backend, not this storage.
+   ------------------------------------------------------------------------- */
+
+const SessionToken = {
+  KEY: "crosscents_session_token",
+  NAME_KEY: "crosscents_display_name",
+  set(token, displayName) {
+    sessionStorage.setItem(SessionToken.KEY, token);
+    if (displayName) sessionStorage.setItem(SessionToken.NAME_KEY, displayName);
   },
   get() {
-    const raw = localStorage.getItem("crosscents_session");
-    return raw ? JSON.parse(raw) : null;
+    return sessionStorage.getItem(SessionToken.KEY);
+  },
+  getDisplayName() {
+    return sessionStorage.getItem(SessionToken.NAME_KEY) || "";
   },
   clear() {
-    localStorage.removeItem("crosscents_session");
-  },
-  requireRole(role, redirectTo) {
-    const s = Session.get();
-    if (!s || s.role !== role) {
-      window.location.href = redirectTo;
-    }
-    return s;
+    sessionStorage.removeItem(SessionToken.KEY);
+    sessionStorage.removeItem(SessionToken.NAME_KEY);
   },
 };
 
 function logout(redirectTo) {
-  Session.clear();
+  SessionToken.clear();
   window.location.href = redirectTo || "index.html";
 }
 
-/* ----------------------------- sample data ------------------------------ */
+/* ------------------------------- API client ------------------------------
+   Every call attaches the Descope session JWT as a Bearer token. The
+   backend independently validates it and decides the response — a 401/403
+   here means the backend rejected it, not that the frontend decided anything.
+   ------------------------------------------------------------------------- */
 
-const SAMPLE_TRANSACTIONS = [
-  { company: "Xentir Pte Ltd", amount: 1200, date: "Aug 4, 2026", status: "complete" },
-  { company: "Northwind Labs", amount: 850, date: "Jul 28, 2026", status: "complete" },
-  { company: "Xentir Pte Ltd", amount: 430, date: "Jul 14, 2026", status: "pending" },
-  { company: "Fenwick & Co", amount: 2100, date: "Jul 2, 2026", status: "complete" },
-];
+class ApiError extends Error {
+  constructor(status, detail) {
+    super(detail || `Request failed (${status})`);
+    this.status = status;
+  }
+}
 
-const SAMPLE_FREELANCERS = [
-  { name: "Katelin Rivera", country: "Philippines", lastPaid: "Aug 4, 2026", status: "Active" },
-  { name: "Priya Nandan", country: "India", lastPaid: "Jul 30, 2026", status: "Active" },
-  { name: "Marco Bellini", country: "Italy", lastPaid: "Jul 22, 2026", status: "Active" },
-  { name: "Sena Okafor", country: "Nigeria", lastPaid: "-", status: "Pending onboarding" },
-];
+async function api(path, { method = "GET", body } = {}) {
+  const token = SessionToken.get();
+  const headers = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = "Bearer " + token;
 
-function formatCurrency(n) {
-  return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const res = await fetch(API_BASE_URL + path, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  let data = null;
+  try {
+    data = await res.json();
+  } catch (_) {
+    // no/invalid JSON body — fine for some error responses
+  }
+
+  if (!res.ok) {
+    throw new ApiError(res.status, data && data.detail);
+  }
+  return data;
+}
+
+/* --------------------------------- Session -------------------------------
+   requireRole() is what every dashboard page calls on load. It asks the
+   BACKEND who the caller is and what role they actually have — it does not
+   trust anything cached in the browser. If the backend says "not
+   authenticated" or "wrong role," we redirect to sign-in, full stop.
+   ------------------------------------------------------------------------- */
+
+const Session = {
+  // Non-redirecting check, for pages that work fine for signed-out visitors
+  // (e.g. the public job board) but personalize themselves when a real
+  // session is present. Never trust the result for gating an action —
+  // use requireRole() for that.
+  async currentOrNull() {
+    if (!SessionToken.get()) return null;
+    try {
+      return await api("/me");
+    } catch (err) {
+      return null;
+    }
+  },
+
+  async requireRole(role, redirectTo) {
+    if (!SessionToken.get()) {
+      window.location.href = redirectTo;
+      return null;
+    }
+    try {
+      const me = await api("/me");
+      if (me.role !== role) {
+        window.location.href = redirectTo;
+        return null;
+      }
+      return me;
+    } catch (err) {
+      window.location.href = redirectTo;
+      return null;
+    }
+  },
+};
+
+function formatCurrency(n, currency = "USD") {
+  const amount = Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return currency === "USD" ? "$" + amount : currency + " " + amount;
+}
+
+function formatDate(isoString) {
+  try {
+    return new Date(isoString).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+  } catch (_) {
+    return isoString;
+  }
+}
+
+function formatDateTime(isoString) {
+  try {
+    return new Date(isoString).toLocaleString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  } catch (_) {
+    return isoString;
+  }
 }
 
 /* ---------------------------- job marketplace ---------------------------- */
+/* Unchanged — this part of the app is still pure sample data, no backend
+   behind it yet, and out of scope for the auth/ledger hardening pass. */
 
 const JOB_CATEGORIES = ["Sales", "Tech", "Business Development", "Marketing", "Design", "Operations"];
 
@@ -133,6 +222,17 @@ const FREELANCER_PROFILES = {
   },
 };
 
+// Cosmetic display fields (country, status) for the company dashboard's
+// freelancer table. The backend has its own copy for validating payment
+// recipients (backend/demo_users.py) — that copy is the one that's actually
+// authoritative; this one is just what's rendered on screen.
+const SAMPLE_FREELANCERS = [
+  { name: "Katelin Rivera", country: "Philippines", status: "Active" },
+  { name: "Priya Nandan", country: "India", status: "Active" },
+  { name: "Marco Bellini", country: "Italy", status: "Active" },
+  { name: "Sena Okafor", country: "Nigeria", status: "Pending onboarding" },
+];
+
 /* -------------------------------- toast -------------------------------- */
 
 function showToast(message) {
@@ -158,6 +258,24 @@ function closeModal(id) {
   document.getElementById(id).classList.remove("open");
 }
 
+/* ------------------------------- safe DOM -------------------------------
+   Build table rows with textContent instead of innerHTML string interpolation
+   so that if a name/memo/etc. ever comes from real (untrusted) user input,
+   it can't inject markup into the page. */
+
+function el(tag, props = {}, children = []) {
+  const node = document.createElement(tag);
+  for (const [key, value] of Object.entries(props)) {
+    if (key === "className") node.className = value;
+    else if (key === "text") node.textContent = value;
+    else node.setAttribute(key, value);
+  }
+  for (const child of children) {
+    node.appendChild(typeof child === "string" ? document.createTextNode(child) : child);
+  }
+  return node;
+}
+
 /* -------------------------------------------------------------------------
    Descope Web Component mount helper.
    Call this on the login pages after the <descope-wc> tag exists in the DOM.
@@ -181,10 +299,19 @@ function mountDescopeFlow({ flowId, onComplete, mountId = "flow-mount" }) {
     mount.appendChild(wc);
 
     wc.addEventListener("success", (e) => {
-      // e.detail typically carries the authenticated user's info once the
-      // flow completes. Session/JWT handling should use the Descope Web JS
-      // SDK (sdk.getSessionToken() / sdk.refresh()) — see README.
-      const user = (e.detail && e.detail.user) || {};
+      // The session JWT the Web Component hands back on success. We only use
+      // it as a bearer token to send to our own backend — the backend
+      // re-validates it independently and is the one that decides identity
+      // and role, so we don't need to (and don't) trust anything else in
+      // this payload for authorization purposes.
+      const detail = (e && e.detail) || {};
+      const sessionJwt = detail.sessionJwt || (detail.data && detail.data.sessionJwt) || detail.token;
+      const user = detail.user || {};
+
+      if (!sessionJwt) {
+        console.error("Descope success event had no session JWT in e.detail — check the shape below and adjust mountDescopeFlow():", detail);
+      }
+      SessionToken.set(sessionJwt, user.name || user.email || "");
       onComplete(user.name || user.email || "there");
     });
 

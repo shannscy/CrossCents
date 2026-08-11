@@ -29,14 +29,11 @@
 
   <script src="js/app.js"></script>
   <script>
-    const session = Session.requireRole("freelancer", "freelancer-login.html");
-    if (session) document.getElementById("who-name").textContent = session.name;
-
     const profile = FREELANCER_PROFILES["katelin-rivera"];
     // Display name comes from whoever's actually signed in — the rest of the
     // profile (headline, experience, skills) is Katelin's example content,
     // since there's no real per-user profile data behind this yet.
-    const displayName = (session && session.name) || profile.name;
+    const displayName = SessionToken.getDisplayName() || profile.name;
     const initials = displayName.split(" ").map((p) => p[0]).join("").toUpperCase();
 
     document.getElementById("profile-root").innerHTML = `
@@ -72,6 +69,8 @@
         </div>
       </div>
     `;
+
+    Session.requireRole("freelancer", "freelancer-login.html");
   </script>
 </body>
 </html>

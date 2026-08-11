@@ -37,8 +37,16 @@
   <script>
     mountDescopeFlow({
       flowId: COMPANY_FLOW_ID,
-      onComplete: (name) => {
-        Session.set("company", name, "Xentir Pte Ltd");
+      onComplete: async (name) => {
+        // Bootstrap logs the login server-side and resolves role/org — the
+        // frontend never declares "I'm a company admin" itself. If this
+        // call fails, the dashboard's own requireRole() check will still
+        // catch it (and bounce back here), so we don't hard-block on it.
+        try {
+          await api("/session/bootstrap");
+        } catch (err) {
+          console.error("Session bootstrap failed", err);
+        }
         window.location.href = "company-dashboard.html";
       },
     });

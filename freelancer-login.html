@@ -41,8 +41,14 @@
   <script>
     mountDescopeFlow({
       flowId: FREELANCER_FLOW_ID,
-      onComplete: (name) => {
-        Session.set("freelancer", name);
+      onComplete: async (name) => {
+        // See company-login.html for why this calls the backend instead of
+        // just setting a role locally.
+        try {
+          await api("/session/bootstrap");
+        } catch (err) {
+          console.error("Session bootstrap failed", err);
+        }
         window.location.href = "freelancer-jobs.html";
       },
     });
