@@ -50,7 +50,10 @@ def get_current_user(authorization: str | None = Header(default=None)) -> dict:
     if not user_id:
         raise HTTPException(status_code=401, detail="Could not identify user from session")
 
-    resolved = resolve_role(user_id)
+    # user_id (Descope's stable internal ID) is what owns ledger/audit rows.
+    # email is only used to resolve the demo role — see demo_users.py for why.
+    email = jwt_response.get("email")
+    resolved = resolve_role(email)
     return {"user_id": user_id, "role": resolved["role"], "organisation": resolved["organisation"]}
 
 
