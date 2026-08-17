@@ -98,7 +98,14 @@ async def start_verification(payload: StartVerificationRequest) -> StartVerifica
                     "Accept": "application/json",
                     "Authorization": f"Bearer {api_key}",
                 },
-                json={"destination": phone},
+                json={
+                    "destination": phone,
+                    # 8x8 defaults to a 4-digit code; the flow's OTP screens (and
+                    # most fintech UX) expect 6.
+                    "codeLength": 6,
+                    # Branding shown inside the SMS itself.
+                    "productName": "CrossCents",
+                },
             )
     except httpx.TimeoutException:
         raise HTTPException(status_code=504, detail="Verification provider timed out")
