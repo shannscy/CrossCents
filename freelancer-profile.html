@@ -35,6 +35,7 @@
     // since there's no real per-user profile data behind this yet.
     const displayName = SessionToken.getDisplayName() || profile.name;
     const initials = displayName.split(" ").map((p) => p[0]).join("").toUpperCase();
+    document.getElementById("who-name").textContent = displayName;
 
     document.getElementById("profile-root").innerHTML = `
       <div class="profile-header">
