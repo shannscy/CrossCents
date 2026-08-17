@@ -1,16 +1,43 @@
 """Integration layer for 8x8 Verif8. 8x8 owns OTP generation and validation —
 this module only relays requests to it and translates the response."""
 
+import base64
+import hashlib
+import hmac
 import os
 
 import httpx
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/verification", tags=["verification"])
 
 VERIF8_BASE_URL = "https://verify.8x8.com"
 REQUEST_TIMEOUT = 10.0
+
+
+async def require_descope_signature(request: Request) -> None:
+    """Only Descope's Generic HTTP Connector should be able to trigger these
+    endpoints — anyone else finding this URL could otherwise burn real 8x8
+    credit sending themselves SMS. Descope signs the raw request body with a
+    shared secret and sends it in x-descope-webhook-s256; we recompute the
+    same signature and compare. See: https://docs.descope.com/connectors/connector-hmac-usage
+    """
+    secret = os.environ.get("DESCOPE_CONNECTOR_HMAC_SECRET")
+    if not secret:
+        raise HTTPException(status_code=500, detail="Connector auth is not configured")
+
+    sent_signature = request.headers.get("x-descope-webhook-s256")
+    if not sent_signature:
+        raise HTTPException(status_code=401, detail="Missing connector signature")
+
+    body = await request.body()
+    expected = base64.b64encode(
+        hmac.new(secret.encode(), body, hashlib.sha256).digest()
+    ).decode()
+
+    if not hmac.compare_digest(sent_signature, expected):
+        raise HTTPException(status_code=401, detail="Invalid connector signature")
 
 
 class StartVerificationRequest(BaseModel):
@@ -53,7 +80,7 @@ def _map_error(status_code: int) -> HTTPException:
     return HTTPException(status_code=502, detail="Unexpected response from verification provider")
 
 
-@router.post("/start", response_model=StartVerificationResponse)
+@router.post("/start", response_model=StartVerificationResponse, dependencies=[Depends(require_descope_signature)])
 async def start_verification(payload: StartVerificationRequest) -> StartVerificationResponse:
     phone = payload.phone.strip()
     if not phone:
@@ -88,7 +115,7 @@ async def start_verification(payload: StartVerificationRequest) -> StartVerifica
     return StartVerificationResponse(verification_id=session_id)
 
 
-@router.post("/verify", response_model=VerifyResponse)
+@router.post("/verify", response_model=VerifyResponse, dependencies=[Depends(require_descope_signature)])
 async def verify_code(payload: VerifyRequest) -> VerifyResponse:
     verification_id = payload.verification_id.strip()
     code = payload.code.strip()
