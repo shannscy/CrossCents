@@ -313,10 +313,15 @@ function mountDescopeFlow({ flowId, onComplete, mountId = "flow-mount" }) {
       const sessionJwt = detail.sessionJwt || (detail.data && detail.data.sessionJwt) || detail.token;
       const user = detail.user || {};
 
-      if (!sessionJwt) {
-        console.error("Descope success event had no session JWT in e.detail — check the shape below and adjust mountDescopeFlow():", detail);
+      if (sessionJwt) {
+        SessionToken.set(sessionJwt, user.name || user.email || "");
+      } else {
+        // Step-up flows complete without handing back a new JWT. Overwriting
+        // here stored the string "undefined" and every later call went out as
+        // "Bearer undefined", so the backend rejected it as an invalid session.
+        // Keep the token we already have instead.
+        console.warn("Descope success event carried no session JWT — keeping the existing session token. Event detail:", detail);
       }
-      SessionToken.set(sessionJwt, user.name || user.email || "");
       onComplete(user.name || user.email || "there");
     });
 
